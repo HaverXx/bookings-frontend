@@ -22,6 +22,40 @@
   --radius-md: 18px;
   --radius-lg: 24px;
   --sidebar-width: 248px;
+  
+  /* Transparency helpers */
+  --surface-alpha: rgba(255, 255, 255, 0.92);
+  --border-alpha: rgba(230, 235, 242, 0.9);
+  --header-bg: rgba(255, 255, 255, 0.82);
+  --header-border: rgba(230, 235, 242, 0.95);
+}
+
+[data-theme='dark'] {
+  --bg: #0b0f1a;
+  --surface: #151b2b;
+  --surface-2: #1e293b;
+  --border: #262f45;
+  --border-strong: #334155;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --muted-2: #64748b;
+  --primary: #38bdf8;
+  --primary-soft: #1e293b;
+  --accent: #60a5fa;
+  --success-bg: #064e3b;
+  --success-text: #6ee7b7;
+  --warning-bg: #78350f;
+  --warning-text: #fcd34d;
+  --paid-bg: #1e3a8a;
+  --paid-text: #93c5fd;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  
+  /* Transparency helpers */
+  --surface-alpha: rgba(21, 27, 43, 0.92);
+  --border-alpha: rgba(38, 47, 69, 0.9);
+  --header-bg: rgba(21, 27, 43, 0.82);
+  --header-border: rgba(38, 47, 69, 0.95);
 }
 
 * {
@@ -32,9 +66,10 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #f5f7fb;
+  background: var(--bg);
   color: var(--text);
   font-family: Inter, Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 a {
@@ -59,8 +94,8 @@ body {
 
 .admin-sidebar {
   width: var(--sidebar-width);
-  background: rgba(255, 255, 255, 0.92);
-  border-right: 1px solid rgba(230, 235, 242, 0.9);
+  background: var(--surface-alpha);
+  border-right: 1px solid var(--border-alpha);
   backdrop-filter: blur(10px);
   padding: 24px 16px;
   position: sticky;
@@ -98,18 +133,18 @@ body {
   border-radius: 14px;
   padding: 12px 14px;
   font-size: 14px;
-  color: #334155;
+  color: var(--text);
   background: transparent;
   transition: all 0.2s ease;
 }
 
 .admin-sidebar__link:hover {
-  background: #f8fafc;
+  background: var(--surface-2);
 }
 
 .admin-sidebar__link--active {
-  background: #eef2ff;
-  color: #1e3a8a;
+  background: var(--primary-soft);
+  color: var(--primary);
   font-weight: 600;
 }
 
@@ -125,8 +160,8 @@ body {
   justify-content: space-between;
   padding: 22px 28px;
   margin: 18px 18px 0;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(230, 235, 242, 0.95);
+  background: var(--header-bg);
+  border: 1px solid var(--header-border);
   border-radius: 22px;
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
@@ -155,7 +190,7 @@ body {
   width: 42px;
   height: 42px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #0f172a, #334155);
+  background: linear-gradient(135deg, var(--primary), var(--surface-2));
   color: white;
   display: grid;
   place-items: center;
@@ -193,7 +228,7 @@ body {
   justify-content: space-between;
   align-items: center;
   gap: 18px;
-  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  background: linear-gradient(180deg, var(--surface), var(--bg));
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 28px;
@@ -224,7 +259,7 @@ body {
 
 .secondary-btn {
   border: 1px solid var(--border);
-  background: white;
+  background: var(--surface);
   color: var(--text);
   border-radius: 14px;
   padding: 12px 18px;
@@ -239,7 +274,7 @@ body {
 }
 
 .kpi-card {
-  background: linear-gradient(180deg, #ffffff, #fbfcff);
+  background: linear-gradient(180deg, var(--surface), var(--bg));
   border: 1px solid var(--border);
   border-radius: 22px;
   padding: 22px;
@@ -358,7 +393,7 @@ body {
 }
 
 .info-box {
-  background: #f8fafc;
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 16px;
@@ -389,7 +424,7 @@ body {
 
 .filter-pill {
   border: 1px solid var(--border);
-  background: white;
+  background: var(--surface);
   border-radius: 999px;
   padding: 10px 14px;
   font-size: 14px;
@@ -408,7 +443,7 @@ body {
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid var(--border-strong);
-  background: white;
+  background: var(--surface);
   color: var(--text);
 }
 
@@ -439,7 +474,7 @@ body {
 }
 
 .customer-card {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 22px;
   padding: 20px;
@@ -461,7 +496,7 @@ body {
 .customer-tag {
   width: fit-content;
   margin-top: 12px;
-  background: #f1f5f9;
+  background: var(--surface-2);
   padding: 6px 10px;
   border-radius: 10px;
   font-size: 13px;
@@ -544,8 +579,8 @@ body {
 .modal-card {
   width: min(100%, 460px);
   border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: #ffffff;
+  border: 1px solid var(--border);
+  background: var(--surface);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   padding: 28px;
 }
@@ -567,7 +602,7 @@ body {
   margin: 0 0 10px;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #111;
+  color: var(--text);
   line-height: 1.2;
 }
 

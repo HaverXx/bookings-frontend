@@ -1,16 +1,18 @@
+import ThemeToggle from "./ThemeToggle";
+
 export default function Header() {
-    return (
-      <header
-        style={{
-          backgroundColor: "#ffffff",
-          borderBottom: "1px solid #e5e7eb",
-          padding: "20px 24px",
-        }}
-      >
-        <h1 style={{ margin: 0, fontSize: "28px" }}>Bookings Admin</h1>
-        <p style={{ margin: "6px 0 0", color: "#6b7280", fontSize: "14px" }}>
+  return (
+    <header className="admin-header">
+      <div>
+        <h1 className="admin-header__title">Bookings Admin</h1>
+        <p className="admin-header__subtitle">
           Plataforma de gestión de reservas y cobros
         </p>
-      </header>
-    );
-  }
+      </div>
+      <div className="admin-header__actions">
+        <ThemeToggle />
+        <div className="admin-avatar">AD</div>
+      </div>
+    </header>
+  );
+}
