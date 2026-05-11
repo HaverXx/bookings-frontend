@@ -73,6 +73,8 @@ function KpiCard({
   );
 }
 
+import { ExportButton } from "./ExportButton";
+
 export default function DashboardPage() {
   return (
     <div className="page-stack">
@@ -82,9 +84,7 @@ export default function DashboardPage() {
           <p>Control diario de reservas, actividad y pagos.</p>
         </div>
 
-        <button className="primary-btn" type="button">
-          Export report
-        </button>
+        <ExportButton />
       </section>
 
       <section className="kpi-grid">
