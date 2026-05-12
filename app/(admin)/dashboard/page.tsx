@@ -1,5 +1,7 @@
 "use client";
+import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { getAppointments, type Booking } from "@/lib/api";
 import { ExportButton } from "./ExportButton";
 
 type DashboardBookingStatus = "pending" | "confirmed" | "paid";
@@ -11,30 +13,6 @@ type DashboardBooking = {
   service: string;
   status: DashboardBookingStatus;
 };
-
-const bookings: DashboardBooking[] = [
-  {
-    time: "09:00",
-    client: "María López",
-    business: "Peluquería Nova",
-    service: "Corte + peinado",
-    status: "confirmed",
-  },
-  {
-    time: "10:30",
-    client: "Carlos Pérez",
-    business: "Restaurante Marea",
-    service: "Reserva para 4",
-    status: "pending",
-  },
-  {
-    time: "12:00",
-    client: "Lucía Sánchez",
-    business: "Barber Studio",
-    service: "Corte caballero",
-    status: "paid",
-  },
-];
 
 function Badge({ status }: { status: DashboardBookingStatus }) {
   const { t } = useLanguage();
@@ -80,6 +58,84 @@ function KpiCard({
 
 export default function DashboardPage() {
   const { t } = useLanguage();
+  const [appointments, setAppointments] = useState<Booking[]>([]);
+
+  useEffect(() => {
+    const loadAppointments = async () => {
+      try {
+        const data = await getAppointments();
+        setAppointments(data);
+      } catch (error) {
+        console.error("Error cargando reservas", error);
+      }
+    };
+
+    void loadAppointments();
+  }, []);
+
+  const bookings = useMemo<DashboardBooking[]>(() => {
+    const today = new Date().toISOString().split("T")[0];
+
+    return appointments
+      .filter((appointment) => appointment.date === today && !appointment.serviceName.includes("Cobro"))
+      .sort((a, b) => a.time.localeCompare(b.time))
+      .map((appointment) => ({
+        time: appointment.time,
+        client: `Cliente #${appointment.customerId}`,
+        business: `Comercio #${appointment.businessId}`,
+        service: appointment.serviceName,
+        status: appointment.status,
+      }));
+  }, [appointments]);
+
+  const today = new Date().toISOString().split("T")[0];
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+  const todayAppointments = appointments.filter((a) => a.date === today);
+  const yesterdayAppointments = appointments.filter((a) => a.date === yesterday);
+
+  const paidCount = todayAppointments.filter((a) => a.status === "paid").length;
+  const pendingCount = todayAppointments.filter((a) => a.status === "pending").length;
+  const activeCustomers = new Set(appointments.map((item) => item.customerId)).size;
+
+  function parseAmountFromService(serviceName: string): number {
+    const match = (serviceName || "").match(/(\d+(?:\.\d+)?)/);
+    if (!match) return 0;
+    const n = Number(match[0]);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  const totalPaidAmount = todayAppointments
+    .filter((a) => a.status === "paid")
+    .reduce((sum, a) => sum + parseAmountFromService(a.serviceName), 0);
+
+  const kpis = [
+    {
+      title: t("dashboard.kpi.bookings"),
+      value: String(bookings.length),
+      subtitle: (() => {
+        const diff = bookings.length - yesterdayAppointments.length;
+        return `${diff >= 0 ? "+" : ""}${diff} respecto a ayer`;
+      })(),
+      variant: "positive" as const,
+    },
+    {
+      title: t("dashboard.kpi.revenue"),
+      value: `${totalPaidAmount} €`,
+      subtitle: `${paidCount} ${paidCount === 1 ? "pago registrado" : "pagos registrados"}`,
+    },
+    {
+      title: t("dashboard.kpi.pending"),
+      value: String(pendingCount),
+      subtitle: t("dashboard.kpi.pending.meta"),
+      variant: pendingCount > 0 ? ("warning" as const) : undefined,
+    },
+    {
+      title: t("dashboard.kpi.customers"),
+      value: String(activeCustomers),
+      subtitle: t("dashboard.kpi.customers.meta"),
+    },
+  ];
 
   return (
     <div className="page-stack">
@@ -89,40 +145,34 @@ export default function DashboardPage() {
           <p>{t("dashboard.subtitle")}</p>
         </div>
 
-        
         <ExportButton
           bookings={bookings}
-          kpis={[
-            { title: "Reservas hoy", value: "24", subtitle: "+5 respecto a ayer" },
-            { title: "Cobrado hoy", value: "820 €", subtitle: "18 pagos registrados" },
-            { title: "Pendientes", value: "6", subtitle: "Seguimiento necesario" },
-            { title: "Clientes activos", value: "214", subtitle: "Este mes" },
-          ]}
+          kpis={kpis.map(({ title, value, subtitle }) => ({ title, value, subtitle }))}
         />
       </section>
 
       <section className="kpi-grid">
         <KpiCard
-          title={t("dashboard.kpi.bookings")}
-          value="24"
-          subtitle={t("dashboard.kpi.bookings.meta")}
-          variant="positive"
+          title={kpis[0].title}
+          value={kpis[0].value}
+          subtitle={kpis[0].subtitle}
+          variant={kpis[0].variant}
         />
         <KpiCard 
-          title={t("dashboard.kpi.revenue")} 
-          value="820 €" 
-          subtitle={t("dashboard.kpi.revenue.meta")} 
+          title={kpis[1].title} 
+          value={kpis[1].value} 
+          subtitle={kpis[1].subtitle} 
         />
         <KpiCard
-          title={t("dashboard.kpi.pending")}
-          value="6"
-          subtitle={t("dashboard.kpi.pending.meta")}
-          variant="warning"
+          title={kpis[2].title}
+          value={kpis[2].value}
+          subtitle={kpis[2].subtitle}
+          variant={kpis[2].variant}
         />
         <KpiCard 
-          title={t("dashboard.kpi.customers")} 
-          value="214" 
-          subtitle={t("dashboard.kpi.customers.meta")} 
+          title={kpis[3].title} 
+          value={kpis[3].value} 
+          subtitle={kpis[3].subtitle} 
         />
       </section>
 
@@ -157,6 +207,13 @@ export default function DashboardPage() {
                   </td>
                 </tr>
               ))}
+              {bookings.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: "center", color: "#64748b" }}>
+                    No hay reservas para hoy
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </div>
@@ -164,19 +221,23 @@ export default function DashboardPage() {
         <div className="info-stack">
           <div className="info-box">
             <p className="info-box__eyebrow">{t("dashboard.info.next")}</p>
-            <p className="info-box__title">María López</p>
-            <p className="info-box__text">09:00 · Peluquería Nova</p>
+            <p className="info-box__title">
+              {bookings[0]?.client ?? "Sin reservas"}
+            </p>
+            <p className="info-box__text">
+              {bookings[0] ? `${bookings[0].time} · ${bookings[0].business}` : "No hay reservas para hoy"}
+            </p>
           </div>
 
           <div className="info-box">
             <p className="info-box__eyebrow">{t("dashboard.info.featured")}</p>
-            <p className="info-box__title">Restaurante Marea</p>
-            <p className="info-box__text">{t("dashboard.info.featured.text")}</p>
+            <p className="info-box__title">{bookings.length}</p>
+            <p className="info-box__text">Reservas hoy</p>
           </div>
 
           <div className="info-box">
             <p className="info-box__eyebrow">{t("dashboard.info.reminders")}</p>
-            <p className="info-box__title">{t("dashboard.info.reminders.title")}</p>
+            <p className="info-box__title">{pendingCount} pendientes</p>
             <p className="info-box__text">{t("dashboard.info.reminders.text")}</p>
           </div>
         </div>
