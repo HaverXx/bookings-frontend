@@ -84,7 +84,15 @@ export default function DashboardPage() {
           <p>Control diario de reservas, actividad y pagos.</p>
         </div>
 
-        <ExportButton />
+        <ExportButton
+          bookings={bookings}
+          kpis={[
+            { title: "Reservas hoy", value: "24", subtitle: "+5 respecto a ayer" },
+            { title: "Cobrado hoy", value: "820 €", subtitle: "18 pagos registrados" },
+            { title: "Pendientes", value: "6", subtitle: "Seguimiento necesario" },
+            { title: "Clientes activos", value: "214", subtitle: "Este mes" },
+          ]}
+        />
       </section>
 
       <section className="kpi-grid">
