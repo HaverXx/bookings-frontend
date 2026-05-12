@@ -17,21 +17,30 @@ export default function LanguageSwitcher() {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: "8px",
-        padding: "8px 14px",
+        justifyContent: "center",
+        width: "42px",
+        height: "42px",
+        padding: "0",
         borderRadius: "12px",
-        fontSize: "14px",
-        fontWeight: "600",
         transition: "all 0.2s ease",
-        minWidth: "70px",
-        justifyContent: "center"
+        cursor: "pointer",
+        border: "1px solid var(--border)",
+        background: "var(--surface)",
+        overflow: "hidden"
       }}
-      aria-label="Change language"
+      aria-label={lang === "es" ? "Cambiar a Inglés" : "Switch to Spanish"}
+      title={lang === "es" ? "Cambiar a Inglés" : "Switch to Spanish"}
     >
-      <span style={{ fontSize: "18px" }}>
-        {lang === "es" ? "🇪🇸" : "🇬🇧"}
-      </span>
-      <span>{lang.toUpperCase()}</span>
+      <img 
+        src={lang === "es" ? "https://flagcdn.com/w40/es.png" : "https://flagcdn.com/w40/gb.png"} 
+        alt={lang === "es" ? "Español" : "English"}
+        style={{
+          width: "24px",
+          height: "auto",
+          borderRadius: "2px",
+          objectFit: "cover"
+        }}
+      />
     </button>
   );
 }
