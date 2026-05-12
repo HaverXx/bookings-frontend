@@ -9,3 +9,12 @@ export type Appointment = {
   businessId: number;
   serviceName: string;
 };
+
+//customers
+export type Customer = {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+  business: string;
+};

@@ -90,3 +90,30 @@ export async function deleteAppointment(
 
   return res.json();
 }
+
+
+//customers
+import type { Customer } from './types';
+
+export interface CreateCustomerDto {
+  name: string;
+  phone: string;
+  email: string;
+  business: string;
+}
+
+export async function getCustomers(): Promise<Customer[]> {
+  const res = await fetch(`${API_URL}/customers`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Error al obtener los clientes');
+  return res.json();
+}
+
+export async function createCustomer(data: CreateCustomerDto): Promise<Customer> {
+  const res = await fetch(`${API_URL}/customers`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Error al crear el cliente');
+  return res.json();
+}
