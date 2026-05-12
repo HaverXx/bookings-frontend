@@ -1,3 +1,7 @@
+"use client";
+import { useLanguage } from "@/context/LanguageContext";
+import { ExportButton } from "./ExportButton";
+
 type DashboardBookingStatus = "pending" | "confirmed" | "paid";
 
 type DashboardBooking = {
@@ -33,12 +37,13 @@ const bookings: DashboardBooking[] = [
 ];
 
 function Badge({ status }: { status: DashboardBookingStatus }) {
+  const { t } = useLanguage();
   const label =
     status === "pending"
-      ? "Pendiente"
+      ? t("status.pending")
       : status === "confirmed"
-        ? "Confirmada"
-        : "Pagada";
+        ? t("status.confirmed")
+        : t("status.paid_fem");
 
   return <span className={`badge badge--${status}`}>{label}</span>;
 }
@@ -73,54 +78,64 @@ function KpiCard({
   );
 }
 
-import { ExportButton } from "./ExportButton";
-
 export default function DashboardPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="page-stack">
       <section className="page-hero">
         <div>
-          <h2>Dashboard overview</h2>
-          <p>Control diario de reservas, actividad y pagos.</p>
+          <h2>{t("dashboard.title")}</h2>
+          <p>{t("dashboard.subtitle")}</p>
         </div>
 
-        <ExportButton />
+        <button className="primary-btn" type="button">
+          {t("dashboard.export")}
+        </button>
       </section>
 
       <section className="kpi-grid">
         <KpiCard
-          title="Reservas hoy"
+          title={t("dashboard.kpi.bookings")}
           value="24"
-          subtitle="+5 respecto a ayer"
+          subtitle={t("dashboard.kpi.bookings.meta")}
           variant="positive"
         />
-        <KpiCard title="Cobrado hoy" value="820 €" subtitle="18 pagos registrados" />
+        <KpiCard 
+          title={t("dashboard.kpi.revenue")} 
+          value="820 €" 
+          subtitle={t("dashboard.kpi.revenue.meta")} 
+        />
         <KpiCard
-          title="Pendientes"
+          title={t("dashboard.kpi.pending")}
           value="6"
-          subtitle="Seguimiento necesario"
+          subtitle={t("dashboard.kpi.pending.meta")}
           variant="warning"
         />
-        <KpiCard title="Clientes activos" value="214" subtitle="Este mes" />
+        <KpiCard 
+          title={t("dashboard.kpi.customers")} 
+          value="214" 
+          subtitle={t("dashboard.kpi.customers.meta")} 
+        />
       </section>
 
       <section className="dashboard-grid">
         <div className="section-card">
           <div className="panel-title-row">
-            <h3 className="panel-title">Próximas reservas</h3>
+            <h3 className="panel-title">{t("dashboard.next")}</h3>
             <button className="panel-subtle-link" type="button">
-              Ver todas
+              {t("dashboard.viewAll")}
             </button>
           </div>
 
           <table className="data-table">
             <thead>
               <tr>
-                <th>Hora</th>
-                <th>Cliente</th>
-                <th>Comercio</th>
-                <th>Servicio</th>
-                <th>Estado</th>
+                <th>{t("table.time")}</th>
+                <th>{t("table.customer")}</th>
+                <th>{t("table.business")}</th>
+                <th>{t("table.service")}</th>
+                <th>{t("table.status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -141,21 +156,21 @@ export default function DashboardPage() {
 
         <div className="info-stack">
           <div className="info-box">
-            <p className="info-box__eyebrow">Siguiente reserva</p>
+            <p className="info-box__eyebrow">{t("dashboard.info.next")}</p>
             <p className="info-box__title">María López</p>
             <p className="info-box__text">09:00 · Peluquería Nova</p>
           </div>
 
           <div className="info-box">
-            <p className="info-box__eyebrow">Comercio destacado</p>
+            <p className="info-box__eyebrow">{t("dashboard.info.featured")}</p>
             <p className="info-box__title">Restaurante Marea</p>
-            <p className="info-box__text">6 reservas hoy</p>
+            <p className="info-box__text">{t("dashboard.info.featured.text")}</p>
           </div>
 
           <div className="info-box">
-            <p className="info-box__eyebrow">Recordatorios</p>
-            <p className="info-box__title">4 confirmaciones pendientes</p>
-            <p className="info-box__text">Revisión recomendada esta mañana</p>
+            <p className="info-box__eyebrow">{t("dashboard.info.reminders")}</p>
+            <p className="info-box__title">{t("dashboard.info.reminders.title")}</p>
+            <p className="info-box__text">{t("dashboard.info.reminders.text")}</p>
           </div>
         </div>
       </section>

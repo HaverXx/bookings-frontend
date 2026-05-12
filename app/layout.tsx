@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 export const metadata: Metadata = {
   title: "Bookings Admin",
@@ -20,17 +21,23 @@ export default function RootLayout({
               (function() {
                 try {
                   const theme = localStorage.getItem('theme');
+                  const language = localStorage.getItem('language') || 'es';
                   const supportDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                   if (theme === 'dark' || (!theme && supportDark)) {
                     document.documentElement.setAttribute('data-theme', 'dark');
                   }
+                  document.documentElement.setAttribute('lang', language);
                 } catch (e) {}
               })()
             `,
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
+      </body>
     </html>
   );
 }

@@ -2,22 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const menuItems = [
-  { label: "Dashboard", href: "/dashboard", icon: "◫" },
-  { label: "Bookings", href: "/bookings", icon: "☰" },
-  { label: "Customers", href: "/customers", icon: "◎" },
-  { label: "Payments", href: "/payments", icon: "◌" },
-];
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { t } = useLanguage();
+
+  const menuItems = [
+    { label: t("nav.dashboard"), href: "/dashboard", icon: "◫" },
+    { label: t("nav.bookings"), href: "/bookings", icon: "☰" },
+    { label: t("nav.customers"), href: "/customers", icon: "◎" },
+    { label: t("nav.payments"), href: "/payments", icon: "◌" },
+  ];
 
   return (
     <aside className="admin-sidebar">
       <div className="admin-sidebar__brand">
-        <h2 className="admin-sidebar__title">BookFlow</h2>
-        <p className="admin-sidebar__subtitle">Admin workspace</p>
+        <h2 className="admin-sidebar__title">{t("app.brand")}</h2>
+        <p className="admin-sidebar__subtitle">{t("app.workspace")}</p>
       </div>
 
       <nav className="admin-sidebar__nav">
