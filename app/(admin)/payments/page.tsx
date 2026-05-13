@@ -65,7 +65,7 @@ function RegisterPaymentModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validaciones básicas
     if (!form.amount || parseFloat(form.amount) <= 0) {
       alert("Por favor, introduce un importe válido.");
@@ -79,7 +79,7 @@ function RegisterPaymentModal({
     setLoading(true);
     try {
       const nowTime = new Date().toTimeString().slice(0, 5);
-      
+
       // Creamos la "cita" que actúa como cobro
       await createAppointment({
         date: form.date,
@@ -89,7 +89,7 @@ function RegisterPaymentModal({
         businessId: 1,
         serviceName: `Cobro ${parseFloat(form.amount).toFixed(2)} EUR - ${form.customerName.trim()}`,
       });
-      
+
       onCreated();
       onClose();
     } catch (error) {
@@ -263,74 +263,74 @@ export default function PaymentsPage() {
       )}
       <div className="page-stack">
 
-      <style jsx global>{`
+        <style jsx global>{`
         @media print {
           .no-print { display: none !important; }
         }
       `}</style>
 
-      <section className="page-hero no-print">
-        <div>
-          <h2>{t("payments.title")}</h2>
-          <p>{t("payments.subtitle")}</p>
-        </div>
+        <section className="page-hero no-print">
+          <div>
+            <h2>{t("payments.title")}</h2>
+            <p>{t("payments.subtitle")}</p>
+          </div>
 
-        <button
-          className="primary-btn"
-          type="button"
-          onClick={handleRegisterPayment}
-        >
-          {t("payments.register")}
-        </button>
-      </section>
+          <button
+            className="primary-btn"
+            type="button"
+            onClick={handleRegisterPayment}
+          >
+            {t("payments.register")}
+          </button>
+        </section>
 
-      <section className="section-card">
-        <div className="panel-title-row">
-          <h3 className="panel-title">{t("payments.list")}</h3>
-        </div>
+        <section className="section-card">
+          <div className="panel-title-row">
+            <h3 className="panel-title">{t("payments.list")}</h3>
+          </div>
 
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>{t("table.id")}</th>
-              <th>{t("table.customer")}</th>
-              <th>{t("table.amount")}</th>
-              <th>{t("table.date")}</th>
-              <th>{t("table.status")}</th>
-              <th className="no-print">{t("table.action")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paymentList.map((p) => (
-              <tr key={p.idPago}>
-                <td>{p.idPago}</td>
-                <td>{p.Cliente}</td>
-                <td>{p.Importe} {t("receipt.currency")}</td>
-                <td>{p.fecha}</td>
-                <td><Badge status={p.estado} /></td>
-                <td className="no-print">
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      onClick={() => handlePrint(p)}
-                      style={{ background: '#f3f4f6', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '500' }}
-                    >
-                      🖨️ {t("action.print")}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(p.idPago)}
-                      style={{ background: '#fee2e2', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '500' }}
-                    >
-                      🗑️ {t("bookings.delete.action")}
-                    </button>
-                  </div>
-                </td>
-
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>{t("table.id")}</th>
+                <th>{t("table.customer")}</th>
+                <th>{t("table.amount")}</th>
+                <th>{t("table.date")}</th>
+                <th>{t("table.status")}</th>
+                <th className="no-print">{t("table.action")}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-    </div>
+            </thead>
+            <tbody>
+              {paymentList.map((p) => (
+                <tr key={p.idPago}>
+                  <td>{p.idPago}</td>
+                  <td>{p.Cliente}</td>
+                  <td>{p.Importe} {t("receipt.currency")}</td>
+                  <td>{p.fecha}</td>
+                  <td><Badge status={p.estado} /></td>
+                  <td className="no-print">
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => handlePrint(p)}
+                        style={{ background: '#f3f4f6', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '500' }}
+                      >
+                        <i className="bi bi-printer-fill"></i> {t("action.print")}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(p.idPago)}
+                        style={{ background: '#fee2e2', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '500' }}
+                      >
+                        <i className="bi bi-trash-fill"></i> {t("bookings.delete.action")}
+                      </button>
+                    </div>
+                  </td>
+
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      </div>
     </>
   );
 }
