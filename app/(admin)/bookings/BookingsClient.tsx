@@ -287,61 +287,34 @@ export default function BookingsClient({
 
           <form onSubmit={handleCreateSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
-              <input
-                className="input"
-                type="date"
-                value={createForm.date}
-                onChange={(e) => updateCreateForm("date", e.target.value)}
-                required
-              />
-              <input
-                className="input"
-                type="time"
-                value={createForm.time}
-                onChange={(e) => updateCreateForm("time", e.target.value)}
-                required
-              />
-              <select
-                className="select"
-                value={createForm.status}
-                onChange={(e) =>
-                  updateCreateForm("status", e.target.value as BookingStatus)
-                }
-              >
-                <option value="pending">{t("status.pending")}</option>
-                <option value="confirmed">{t("status.confirmed")}</option>
-                <option value="paid">{t("status.paid_fem")}</option>
-              </select>
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={createForm.customerId}
-                onChange={(e) =>
-                  updateCreateForm("customerId", Number(e.target.value))
-                }
-                placeholder="Customer ID"
-                required
-              />
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={createForm.businessId}
-                onChange={(e) =>
-                  updateCreateForm("businessId", Number(e.target.value))
-                }
-                placeholder="Business ID"
-                required
-              />
-              <input
-                className="input input--full"
-                type="text"
-                value={createForm.serviceName}
-                onChange={(e) => updateCreateForm("serviceName", e.target.value)}
-                placeholder={t("table.service")}
-                required
-              />
+              <div>
+                <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.date")}</label>
+                <input className="input" type="date" value={createForm.date} onChange={(e) => updateCreateForm("date", e.target.value)} required />
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.time")}</label>
+                <input className="input" type="time" value={createForm.time} onChange={(e) => updateCreateForm("time", e.target.value)} required />
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.status")}</label>
+                <select className="select" value={createForm.status} onChange={(e) => updateCreateForm("status", e.target.value as BookingStatus)}>
+                  <option value="pending">{t("status.pending")}</option>
+                  <option value="confirmed">{t("status.confirmed")}</option>
+                  <option value="paid">{t("status.paid_fem")}</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.customerId")}</label>
+                <input className="input" type="number" min={1} value={createForm.customerId} onChange={(e) => updateCreateForm("customerId", Number(e.target.value))} required />
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.businessId")}</label>
+                <input className="input" type="number" min={1} value={createForm.businessId} onChange={(e) => updateCreateForm("businessId", Number(e.target.value))} required />
+              </div>
+              <div className="input--full">
+                <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.serviceName")}</label>
+                <input className="input input--full" type="text" value={createForm.serviceName} onChange={(e) => updateCreateForm("serviceName", e.target.value)} required />
+              </div>
             </div>
 
             {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
@@ -366,61 +339,34 @@ export default function BookingsClient({
 
           <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
-              <input
-                className="input"
-                type="date"
-                value={editForm.date}
-                onChange={(e) => updateEditForm("date", e.target.value)}
-                required
-              />
-              <input
-                className="input"
-                type="time"
-                value={editForm.time}
-                onChange={(e) => updateEditForm("time", e.target.value)}
-                required
-              />
-              <select
-                className="select"
-                value={editForm.status}
-                onChange={(e) =>
-                  updateEditForm("status", e.target.value as BookingStatus)
-                }
-              >
-                <option value="pending">{t("status.pending")}</option>
-                <option value="confirmed">{t("status.confirmed")}</option>
-                <option value="paid">{t("status.paid_fem")}</option>
-              </select>
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={editForm.customerId}
-                onChange={(e) =>
-                  updateEditForm("customerId", Number(e.target.value))
-                }
-                placeholder="Customer ID"
-                required
-              />
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={editForm.businessId}
-                onChange={(e) =>
-                  updateEditForm("businessId", Number(e.target.value))
-                }
-                placeholder="Business ID"
-                required
-              />
-              <input
-                className="input input--full"
-                type="text"
-                value={editForm.serviceName}
-                onChange={(e) => updateEditForm("serviceName", e.target.value)}
-                placeholder={t("table.service")}
-                required
-              />
+              <div>
+                <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.date")}</label>
+                <input className="input" type="date" value={editForm.date} onChange={(e) => updateEditForm("date", e.target.value)} required />
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.time")}</label>
+                <input className="input" type="time" value={editForm.time} onChange={(e) => updateEditForm("time", e.target.value)} required />
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.status")}</label>
+                <select className="select" value={editForm.status} onChange={(e) => updateEditForm("status", e.target.value as BookingStatus)}>
+                  <option value="pending">{t("status.pending")}</option>
+                  <option value="confirmed">{t("status.confirmed")}</option>
+                  <option value="paid">{t("status.paid_fem")}</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.customerId")}</label>
+                <input className="input" type="number" min={1} value={editForm.customerId} onChange={(e) => updateEditForm("customerId", Number(e.target.value))} required />
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.businessId")}</label>
+                <input className="input" type="number" min={1} value={editForm.businessId} onChange={(e) => updateEditForm("businessId", Number(e.target.value))} required />
+              </div>
+              <div className="input--full">
+                <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.serviceName")}</label>
+                <input className="input input--full" type="text" value={editForm.serviceName} onChange={(e) => updateEditForm("serviceName", e.target.value)} required />
+              </div>
             </div>
 
             {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
