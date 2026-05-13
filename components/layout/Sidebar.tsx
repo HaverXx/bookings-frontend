@@ -13,6 +13,7 @@ export default function Sidebar() {
     { label: t("nav.bookings"), href: "/bookings", icon: "☰" },
     { label: t("nav.customers"), href: "/customers", icon: "◎" },
     { label: t("nav.payments"), href: "/payments", icon: "◌" },
+    { label: t("nav.businesses"), href: "/businesses", icon: "🏢" },
   ];
 
   return (

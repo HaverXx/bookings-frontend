@@ -117,3 +117,34 @@ export async function createCustomer(data: CreateCustomerDto): Promise<Customer>
   if (!res.ok) throw new Error('Error al crear el cliente');
   return res.json();
 }
+
+//businesses
+import type { Business } from './types';
+
+export interface CreateBusinessDto {
+  name: string;
+}
+
+export async function getBusinesses(): Promise<Business[]> {
+  const res = await fetch(`${API_URL}/businesses`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Error al obtener los negocios');
+  return res.json();
+}
+
+export async function createBusiness(data: CreateBusinessDto): Promise<Business> {
+  const res = await fetch(`${API_URL}/businesses`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Error al crear el negocio');
+  return res.json();
+}
+
+export async function deleteBusiness(id: number): Promise<{ message: string }> {
+  const res = await fetch(`${API_URL}/businesses/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Error al eliminar el negocio');
+  return res.json();
+}

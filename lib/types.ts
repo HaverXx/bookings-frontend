@@ -18,3 +18,9 @@ export type Customer = {
   email: string;
   business: string;
 };
+
+//businesses
+export type Business = {
+  businessID: number;
+  name: string;
+};
