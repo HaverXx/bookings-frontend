@@ -40,28 +40,157 @@ function Badge({ status }: { status: PaymentStatus }) {
   );
 }
 
+/**
+ * Componente Modal para registrar un nuevo cobro
+ */
+function RegisterPaymentModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const { t } = useLanguage();
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    amount: "",
+    customerName: "",
+    date: new Date().toISOString().split('T')[0],
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validaciones básicas
+    if (!form.amount || parseFloat(form.amount) <= 0) {
+      alert("Por favor, introduce un importe válido.");
+      return;
+    }
+    if (!form.customerName.trim()) {
+      alert("Por favor, introduce el nombre del cliente.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const nowTime = new Date().toTimeString().slice(0, 5);
+      
+      // Creamos la "cita" que actúa como cobro
+      await createAppointment({
+        date: form.date,
+        time: nowTime,
+        status: 'paid',
+        customerId: 1, // ID genérico para cobros directos
+        businessId: 1,
+        serviceName: `Cobro ${parseFloat(form.amount).toFixed(2)} EUR - ${form.customerName.trim()}`,
+      });
+      
+      onCreated();
+      onClose();
+    } catch (error) {
+      console.error('Error al registrar cobro:', error);
+      alert('Error: No se pudo conectar con el servidor para registrar el cobro.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+        <p className="modal-title">{t("payments.register")}</p>
+        <p className="modal-text">{t("payments.subtitle")}</p>
+
+        <form onSubmit={handleSubmit} className="form-grid">
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
+              {t("table.customer")}
+            </label>
+            <input
+              className="input"
+              name="customerName"
+              value={form.customerName}
+              onChange={handleChange}
+              placeholder="Ej. Juan Pérez"
+              required
+              autoFocus
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
+              {t("table.amount")}
+            </label>
+            <input
+              className="input"
+              name="amount"
+              type="number"
+              step="0.01"
+              value={form.amount}
+              onChange={handleChange}
+              placeholder="0.00"
+              required
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
+              {t("table.date")}
+            </label>
+            <input
+              className="input"
+              name="date"
+              type="date"
+              value={form.date}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="modal-actions" style={{ gridColumn: '1 / -1', marginTop: '16px' }}>
+            <button type="button" className="secondary-btn" onClick={onClose} disabled={loading}>
+              {t("customers.form.cancel")}
+            </button>
+            <button type="submit" className="primary-btn" disabled={loading}>
+              {loading ? t("customers.form.saving") : t("payments.register")}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function PaymentsPage() {
+
   const { t } = useLanguage();
 
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [showModal, setShowModal] = useState(false);
+
+  // Función para cargar los cobros desde el servidor
+  const loadBookings = async () => {
+    try {
+      const data = await getAppointments();
+      setBookings(data);
+    } catch (error) {
+      console.error('Error cargando cobros', error);
+    }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await getAppointments();
-        setBookings(data);
-      } catch (error) {
-        console.error('Error cargando cobros', error);
-      }
-    };
-    void load();
+    void loadBookings();
   }, []);
+
 
   function toPayment(booking: Booking): Payment {
     // Extraer nombre del cliente del serviceName (formato: "Cobro {amount} EUR - {nombreCliente}")
     const clientNameMatch = booking.serviceName.match(/EUR\s*-\s*(.+)/);
     const clientName = clientNameMatch ? clientNameMatch[1].trim() : `Cliente #${booking.customerId}`;
-    
+
     return {
       idPago: booking.id,
       Cliente: clientName,
@@ -75,33 +204,10 @@ export default function PaymentsPage() {
 
   const paymentList = useMemo(() => bookings.filter((b) => b.status === 'paid').map(toPayment), [bookings]);
 
-  const handleRegisterPayment = async () => {
-    const nuevoImporte = prompt(t('payments.prompt.amount'));
-    const nuevoCliente = prompt(t('payments.prompt.customer'));
-
-    if (!nuevoImporte || !nuevoCliente) return;
-
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const nowTime = new Date().toTimeString().slice(0, 5);
-
-      await createAppointment({
-        date: today,
-        time: nowTime,
-        status: 'paid',
-        customerId: 1,
-        businessId: 1,
-        serviceName: `Cobro ${parseFloat(nuevoImporte).toFixed(2)} EUR - ${nuevoCliente}`,
-      });
-
-      const data = await getAppointments();
-      setBookings(data);
-      alert(t('payments.alert.success'));
-    } catch (error) {
-      console.error('Error registrando cobro', error);
-      alert('No se pudo registrar el cobro en la base de datos');
-    }
+  const handleRegisterPayment = () => {
+    setShowModal(true);
   };
+
 
   const handleDelete = async (id: number) => {
     if (!confirm(t('bookings.delete.text') + id + "?")) return;
@@ -121,7 +227,7 @@ export default function PaymentsPage() {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       const statusText = payment.estado === "Pagado" ? t("status.paid") : t("status.pending");
-      
+
       printWindow.document.write(`
         <html>
           <head><title>${t("receipt.title")} - ${payment.idPago}</title></head>
@@ -148,7 +254,15 @@ export default function PaymentsPage() {
   };
 
   return (
-    <div className="page-stack">
+    <>
+      {showModal && (
+        <RegisterPaymentModal
+          onClose={() => setShowModal(false)}
+          onCreated={loadBookings}
+        />
+      )}
+      <div className="page-stack">
+
       <style jsx global>{`
         @media print {
           .no-print { display: none !important; }
@@ -217,5 +331,6 @@ export default function PaymentsPage() {
         </table>
       </section>
     </div>
+    </>
   );
 }
