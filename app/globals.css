@@ -1,8 +1,8 @@
 :root {
-  --bg: #f5f7fb;
-  --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --border: #e6ebf2;
+
+  --surface: rgba(255, 255, 255, 0.75);
+  --surface-2: rgba(248, 250, 252, 0.8);
+  --border: rgba(230, 235, 242, 0.5);
   --border-strong: #d8e0ea;
   --text: #111827;
   --muted: #6b7280;
@@ -22,7 +22,7 @@
   --radius-md: 18px;
   --radius-lg: 24px;
   --sidebar-width: 248px;
-  
+
   /* Transparency helpers */
   --surface-alpha: rgba(255, 255, 255, 0.92);
   --border-alpha: rgba(230, 235, 242, 0.9);
@@ -32,9 +32,9 @@
 
 [data-theme='dark'] {
   --bg: #0b0f1a;
-  --surface: #151b2b;
-  --surface-2: #1e293b;
-  --border: #262f45;
+  --surface: rgba(21, 27, 43, 0.75);
+  --surface-2: rgba(30, 41, 59, 0.8);
+  --border: rgba(38, 47, 69, 0.5);
   --border-strong: #334155;
   --text: #f1f5f9;
   --muted: #94a3b8;
@@ -50,7 +50,7 @@
   --paid-text: #93c5fd;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-  
+
   /* Transparency helpers */
   --surface-alpha: rgba(21, 27, 43, 0.92);
   --border-alpha: rgba(38, 47, 69, 0.9);
@@ -66,7 +66,11 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
+  background-image: url('/background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: var(--text);
   font-family: Inter, Arial, Helvetica, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -213,6 +217,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(12px);
 }
 
 .section-card {
@@ -221,6 +226,7 @@ body {
   border-radius: var(--radius-lg);
   padding: 24px;
   box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(12px);
 }
 
 .page-hero {
@@ -228,11 +234,12 @@ body {
   justify-content: space-between;
   align-items: center;
   gap: 18px;
-  background: linear-gradient(180deg, var(--surface), var(--bg));
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 28px;
   box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(12px);
 }
 
 .page-hero h2 {
@@ -274,11 +281,12 @@ body {
 }
 
 .kpi-card {
-  background: linear-gradient(180deg, var(--surface), var(--bg));
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 22px;
   padding: 22px;
   box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(12px);
 }
 
 .kpi-card__label {
@@ -517,6 +525,7 @@ body {
 }
 
 @media (max-width: 1200px) {
+
   .kpi-grid,
   .customer-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
