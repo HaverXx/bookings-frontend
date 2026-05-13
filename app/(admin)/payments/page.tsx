@@ -284,51 +284,26 @@ export default function PaymentsPage() {
           </button>
         </section>
 
-        <section className="section-card">
-          <div className="panel-title-row">
-            <h3 className="panel-title">{t("payments.list")}</h3>
-          </div>
+        {paymentList.length === 0 && (
+          <p style={{ color: "var(--muted)", textAlign: "center" }}>{t("customers.empty")}</p>
+        )}
 
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>{t("table.id")}</th>
-                <th>{t("table.customer")}</th>
-                <th>{t("table.amount")}</th>
-                <th>{t("table.date")}</th>
-                <th>{t("table.status")}</th>
-                <th className="no-print">{t("table.action")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paymentList.map((p) => (
-                <tr key={p.idPago}>
-                  <td>{p.idPago}</td>
-                  <td>{p.Cliente}</td>
-                  <td>{p.Importe} {t("receipt.currency")}</td>
-                  <td>{p.fecha}</td>
-                  <td><Badge status={p.estado} /></td>
-                  <td className="no-print">
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => handlePrint(p)}
-                        style={{ background: '#f3f4f6', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '500' }}
-                      >
-                        <i className="bi bi-printer-fill"></i> {t("action.print")}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(p.idPago)}
-                        style={{ background: '#fee2e2', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '500' }}
-                      >
-                        <i className="bi bi-trash-fill"></i> {t("bookings.delete.action")}
-                      </button>
-                    </div>
-                  </td>
-
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <section className="customer-grid">
+          {paymentList.map((p) => (
+            <div key={p.idPago} className="customer-card">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                <p className="customer-name">#{p.idPago} · {p.Cliente}</p>
+                <Badge status={p.estado} />
+              </div>
+              <p className="customer-meta">{p.fecha}</p>
+              <p className="customer-meta">{p.Comercio}</p>
+              <div className="customer-tag">{p.Importe} {t("receipt.currency")} · {p.Metodo}</div>
+              <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                <button className="secondary-btn" style={{ flex: 1 }} onClick={() => handlePrint(p)}>{t("action.print")}</button>
+                <button className="danger-btn" style={{ flex: 1 }} onClick={() => handleDelete(p.idPago)}>{t("bookings.delete.action")}</button>
+              </div>
+            </div>
+          ))}
         </section>
       </div>
     </>
