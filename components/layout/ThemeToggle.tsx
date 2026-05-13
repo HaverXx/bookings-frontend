@@ -38,7 +38,7 @@ export default function ThemeToggle() {
       }}
       aria-label="Toggle theme"
     >
-      {theme === "light" ? "🌙" : "☀️"}
+      {theme === "light" ? <i className="bi bi-brightness-high-fill"></i> : <i className="bi bi-moon-fill"></i>}
     </button>
   );
 }
