@@ -26,7 +26,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="secondary-btn"
+      className="secondary-btn header-btn"
       style={{
         width: "40px",
         height: "40px",

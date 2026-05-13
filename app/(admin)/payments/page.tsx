@@ -276,7 +276,7 @@ export default function PaymentsPage() {
           </div>
 
           <button
-            className="primary-btn"
+            className="primary-btn btn-primary-action"
             type="button"
             onClick={handleRegisterPayment}
           >
@@ -299,7 +299,7 @@ export default function PaymentsPage() {
               <p className="customer-meta">{p.Comercio}</p>
               <div className="customer-tag">{p.Importe} {t("receipt.currency")} · {p.Metodo}</div>
               <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-                <button className="secondary-btn" style={{ flex: 1 }} onClick={() => handlePrint(p)}>{t("action.print")}</button>
+                <button className="secondary-btn btn-edit" style={{ flex: 1 }} onClick={() => handlePrint(p)}>{t("action.print")}</button>
                 <button className="danger-btn" style={{ flex: 1 }} onClick={() => handleDelete(p.idPago)}>{t("bookings.delete.action")}</button>
               </div>
             </div>

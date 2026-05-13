@@ -13,7 +13,7 @@ export default function LanguageSwitcher() {
   return (
     <button
       onClick={toggleLanguage}
-      className="secondary-btn"
+      className="secondary-btn header-btn"
       style={{
         display: "flex",
         alignItems: "center",

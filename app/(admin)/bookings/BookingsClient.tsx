@@ -288,7 +288,7 @@ function BookingCard({
       <p className="customer-meta">{formatDate(booking.date, lang)} · {booking.time}</p>
       <p className="customer-meta">Cliente: {booking.customerId} · Comercio: {booking.businessId}</p>
       <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-        <button className="secondary-btn" style={{ flex: 1 }} onClick={() => onEdit(booking)}>Editar</button>
+        <button className="secondary-btn btn-edit" style={{ flex: 1 }} onClick={() => onEdit(booking)}>Editar</button>
         <button className="danger-btn" style={{ flex: 1 }} onClick={() => onDelete(booking.id)}>Eliminar</button>
       </div>
     </div>
@@ -359,7 +359,7 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
             <h2>{t("bookings.title")}</h2>
             <p>{t("bookings.subtitle")}</p>
           </div>
-          <button className="primary-btn" type="button" onClick={() => setShowCreate(true)}>
+          <button className="primary-btn btn-primary-action" type="button" onClick={() => setShowCreate(true)}>
             {t("bookings.new")}
           </button>
         </section>
