@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import { createAppointment, getAppointments, type Booking } from "@/lib/api";
+import { createAppointment, deleteAppointment, getAppointments, type Booking } from "@/lib/api";
+
 
 // 1. Tipos alineados con la tabla 'pagos' de tu SQLite 
 type PaymentStatus = "Pagado" | "Pendiente";
@@ -102,7 +103,20 @@ export default function PaymentsPage() {
     }
   };
 
+  const handleDelete = async (id: number) => {
+    if (!confirm(t('bookings.delete.text') + id + "?")) return;
+
+    try {
+      await deleteAppointment(id);
+      setBookings((prev) => prev.filter((b) => b.id !== id));
+    } catch (error) {
+      console.error('Error eliminando cobro', error);
+      alert(t('bookings.form.error.delete'));
+    }
+  };
+
   // Función de Impresión: Genera una ventana con el formato de recibo
+
   const handlePrint = (payment: Payment) => {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
@@ -181,13 +195,22 @@ export default function PaymentsPage() {
                 <td>{p.fecha}</td>
                 <td><Badge status={p.estado} /></td>
                 <td className="no-print">
-                  <button
-                    onClick={() => handlePrint(p)}
-                    style={{ background: '#e5e7eb', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
-                  >
-                    🖨️ {t("action.print")}
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={() => handlePrint(p)}
+                      style={{ background: '#f3f4f6', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '500' }}
+                    >
+                      🖨️ {t("action.print")}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p.idPago)}
+                      style={{ background: '#fee2e2', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '500' }}
+                    >
+                      🗑️ {t("bookings.delete.action")}
+                    </button>
+                  </div>
                 </td>
+
               </tr>
             ))}
           </tbody>
