@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { createAppointment, getAppointments, type Booking } from "@/lib/api";
 
 // 1. Tipos alineados con la tabla 'pagos' de tu SQLite 
 type PaymentStatus = "Pagado" | "Pendiente";
@@ -40,31 +41,64 @@ function Badge({ status }: { status: PaymentStatus }) {
 
 export default function PaymentsPage() {
   const { t } = useLanguage();
-  
-  // Datos iniciales basados en tu archivo .sqlite [cite: 74]
-  const [paymentList, setPaymentList] = useState<Payment[]>([
-    { idPago: 1, Cliente: "Juan García", Comercio: "Masaje", Importe: 40.00, Metodo: "Efectivo", fecha: "2024-04-23", estado: "Pendiente" },
-    { idPago: 2, Cliente: "Ana Pi", Comercio: "Habitacion Hotel", Importe: 120.00, Metodo: "Tarjeta", fecha: "2007-10-05", estado: "Pagado" }
-  ]);
 
-  // Función para registrar el cobro (Simula la inserción en la tabla 'pagos') 
-  const handleRegisterPayment = () => {
-    const nuevoImporte = prompt(t("payments.prompt.amount"));
-    const nuevoCliente = prompt(t("payments.prompt.customer"));
+  const [bookings, setBookings] = useState<Booking[]>([]);
 
-    if (nuevoImporte && nuevoCliente) {
-      const newEntry: Payment = {
-        idPago: paymentList.length + 1,
-        Cliente: nuevoCliente,
-        Comercio: t("payments.default_business"),
-        Importe: parseFloat(nuevoImporte),
-        Metodo: "Efectivo",
-        fecha: new Date().toISOString().split('T')[0],
-        estado: "Pagado",
-      };
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await getAppointments();
+        setBookings(data);
+      } catch (error) {
+        console.error('Error cargando cobros', error);
+      }
+    };
+    void load();
+  }, []);
 
-      setPaymentList([newEntry, ...paymentList]);
-      alert(t("payments.alert.success"));
+  function toPayment(booking: Booking): Payment {
+    // Extraer nombre del cliente del serviceName (formato: "Cobro {amount} EUR - {nombreCliente}")
+    const clientNameMatch = booking.serviceName.match(/EUR\s*-\s*(.+)/);
+    const clientName = clientNameMatch ? clientNameMatch[1].trim() : `Cliente #${booking.customerId}`;
+    
+    return {
+      idPago: booking.id,
+      Cliente: clientName,
+      Comercio: `Comercio #${booking.businessId}`,
+      Importe: Number((booking.serviceName.match(/(\d+(?:\.\d+)?)/) || [0])[0]) || 0,
+      Metodo: 'Efectivo',
+      fecha: booking.date,
+      estado: booking.status === 'paid' ? 'Pagado' : 'Pendiente',
+    };
+  }
+
+  const paymentList = useMemo(() => bookings.filter((b) => b.status === 'paid').map(toPayment), [bookings]);
+
+  const handleRegisterPayment = async () => {
+    const nuevoImporte = prompt(t('payments.prompt.amount'));
+    const nuevoCliente = prompt(t('payments.prompt.customer'));
+
+    if (!nuevoImporte || !nuevoCliente) return;
+
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const nowTime = new Date().toTimeString().slice(0, 5);
+
+      await createAppointment({
+        date: today,
+        time: nowTime,
+        status: 'paid',
+        customerId: 1,
+        businessId: 1,
+        serviceName: `Cobro ${parseFloat(nuevoImporte).toFixed(2)} EUR - ${nuevoCliente}`,
+      });
+
+      const data = await getAppointments();
+      setBookings(data);
+      alert(t('payments.alert.success'));
+    } catch (error) {
+      console.error('Error registrando cobro', error);
+      alert('No se pudo registrar el cobro en la base de datos');
     }
   };
 
