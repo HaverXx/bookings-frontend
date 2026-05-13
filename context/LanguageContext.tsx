@@ -33,6 +33,7 @@ const translations = {
 
     "dashboard.next": "Próximas reservas",
     "dashboard.viewAll": "Ver todas",
+    "dashboard.viewUpcoming": "Ver próximas",
     "dashboard.info.next": "Siguiente reserva",
     "dashboard.info.featured": "Comercio destacado",
     "dashboard.info.featured.text": "6 reservas hoy",
@@ -150,6 +151,7 @@ const translations = {
 
     "dashboard.next": "Upcoming bookings",
     "dashboard.viewAll": "View all",
+    "dashboard.viewUpcoming": "View upcoming",
     "dashboard.info.next": "Next booking",
     "dashboard.info.featured": "Featured business",
     "dashboard.info.featured.text": "6 bookings today",

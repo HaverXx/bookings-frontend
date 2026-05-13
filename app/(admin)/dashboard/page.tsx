@@ -59,6 +59,7 @@ function KpiCard({
 export default function DashboardPage() {
   const { t } = useLanguage();
   const [appointments, setAppointments] = useState<Booking[]>([]);
+  const [showAllBookings, setShowAllBookings] = useState(false);
 
   useEffect(() => {
     const loadAppointments = async () => {
@@ -73,7 +74,7 @@ export default function DashboardPage() {
     void loadAppointments();
   }, []);
 
-  const bookings = useMemo<DashboardBooking[]>(() => {
+  const todayBookings = useMemo<DashboardBooking[]>(() => {
     const today = new Date().toISOString().split("T")[0];
 
     return appointments
@@ -87,6 +88,25 @@ export default function DashboardPage() {
         status: appointment.status,
       }));
   }, [appointments]);
+
+  const allBookings = useMemo<DashboardBooking[]>(() => {
+    return appointments
+      .filter((appointment) => !appointment.serviceName.includes("Cobro"))
+      .sort((a, b) => {
+        const dateComparison = a.date.localeCompare(b.date);
+        if (dateComparison !== 0) return dateComparison;
+        return a.time.localeCompare(b.time);
+      })
+      .map((appointment) => ({
+        time: `${appointment.date} · ${appointment.time}`,
+        client: `Cliente #${appointment.customerId}`,
+        business: `Comercio #${appointment.businessId}`,
+        service: appointment.serviceName,
+        status: appointment.status,
+      }));
+  }, [appointments]);
+
+  const displayedBookings = showAllBookings ? allBookings : todayBookings;
 
   const today = new Date().toISOString().split("T")[0];
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
@@ -112,9 +132,9 @@ export default function DashboardPage() {
   const kpis = [
     {
       title: t("dashboard.kpi.bookings"),
-      value: String(bookings.length),
+      value: String(todayBookings.length),
       subtitle: (() => {
-        const diff = bookings.length - yesterdayAppointments.length;
+        const diff = todayBookings.length - yesterdayAppointments.length;
         return `${diff >= 0 ? "+" : ""}${diff} respecto a ayer`;
       })(),
       variant: "positive" as const,
@@ -146,7 +166,7 @@ export default function DashboardPage() {
         </div>
 
         <ExportButton
-          bookings={bookings}
+          bookings={todayBookings}
           kpis={kpis.map(({ title, value, subtitle }) => ({ title, value, subtitle }))}
         />
       </section>
@@ -179,9 +199,13 @@ export default function DashboardPage() {
       <section className="dashboard-grid">
         <div className="section-card">
           <div className="panel-title-row">
-            <h3 className="panel-title">{t("dashboard.next")}</h3>
-            <button className="panel-subtle-link" type="button">
-              {t("dashboard.viewAll")}
+            <h3 className="panel-title">{showAllBookings ? t("bookings.title") : t("dashboard.next")}</h3>
+            <button
+              className="panel-subtle-link"
+              type="button"
+              onClick={() => setShowAllBookings((current) => !current)}
+            >
+              {showAllBookings ? t("dashboard.viewUpcoming") : t("dashboard.viewAll")}
             </button>
           </div>
 
@@ -196,7 +220,7 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {bookings.map((booking, index) => (
+              {displayedBookings.map((booking, index) => (
                 <tr key={index}>
                   <td style={{ fontWeight: 600 }}>{booking.time}</td>
                   <td>{booking.client}</td>
@@ -207,7 +231,7 @@ export default function DashboardPage() {
                   </td>
                 </tr>
               ))}
-              {bookings.length === 0 ? (
+              {displayedBookings.length === 0 ? (
                 <tr>
                   <td colSpan={5} style={{ textAlign: "center", color: "#64748b" }}>
                     No hay reservas para hoy
@@ -222,16 +246,16 @@ export default function DashboardPage() {
           <div className="info-box">
             <p className="info-box__eyebrow">{t("dashboard.info.next")}</p>
             <p className="info-box__title">
-              {bookings[0]?.client ?? "Sin reservas"}
+              {todayBookings[0]?.client ?? "Sin reservas"}
             </p>
             <p className="info-box__text">
-              {bookings[0] ? `${bookings[0].time} · ${bookings[0].business}` : "No hay reservas para hoy"}
+              {todayBookings[0] ? `${todayBookings[0].time} · ${todayBookings[0].business}` : "No hay reservas para hoy"}
             </p>
           </div>
 
           <div className="info-box">
             <p className="info-box__eyebrow">{t("dashboard.info.featured")}</p>
-            <p className="info-box__title">{bookings.length}</p>
+            <p className="info-box__title">{todayBookings.length}</p>
             <p className="info-box__text">Reservas hoy</p>
           </div>
 
