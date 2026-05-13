@@ -1,0 +1,159 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password) {
+      setError("Por favor, rellena todos los campos.");
+      return;
+    }
+
+    // Basic mock login
+    if (email.endsWith("@admin.com") && password.length >= 8) {
+        // En un caso real aquí llamaríamos a una API
+        router.push("/dashboard");
+    } else {
+        setError("Credenciales inválidas. El correo debe ser @admin.com y la contraseña de min 8 caracteres.");
+    }
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="surface-card auth-card">
+        <div className="auth-header">
+          <h1 className="auth-title">Bienvenido</h1>
+          <p className="auth-subtitle">Inicia sesión para gestionar tus reservas</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="email">Correo Electrónico</label>
+            <div className="input-wrapper">
+              <i className="bi bi-envelope"></i>
+              <input
+                id="email"
+                type="email"
+                className="input"
+                placeholder="ejemplo@admin.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Contraseña</label>
+            <div className="input-wrapper">
+              <i className="bi bi-lock"></i>
+              <input
+                id="password"
+                type="password"
+                className="input"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          {error && <p className="message-error">{error}</p>}
+
+          <button type="submit" className="primary-btn auth-submit">
+            Entrar
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          <p>¿No tienes una cuenta? <Link href="/register" className="panel-subtle-link">Crear cuenta</Link></p>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .auth-container {
+          display: grid;
+          place-items: center;
+          min-height: 100vh;
+          padding: 20px;
+        }
+        .auth-card {
+          width: min(100%, 420px);
+          padding: 40px;
+          animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .auth-header {
+          text-align: center;
+          margin-bottom: 32px;
+        }
+        .auth-title {
+          font-size: 32px;
+          font-weight: 800;
+          letter-spacing: -0.04em;
+          margin: 0;
+        }
+        .auth-subtitle {
+          color: var(--muted);
+          margin-top: 8px;
+          font-size: 15px;
+        }
+        .auth-form {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        .form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .form-group label {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text);
+        }
+        .input-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+        .input-wrapper i {
+          position: absolute;
+          left: 14px;
+          color: var(--muted);
+          font-size: 18px;
+        }
+        .input-wrapper .input {
+          padding-left: 44px;
+        }
+        .auth-submit {
+          width: 100%;
+          padding: 14px;
+          font-size: 16px;
+          margin-top: 8px;
+        }
+        .auth-footer {
+          text-align: center;
+          margin-top: 24px;
+          font-size: 14px;
+          color: var(--muted);
+        }
+      `}</style>
+    </div>
+  );
+}
