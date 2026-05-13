@@ -12,21 +12,23 @@ import {
   deleteAppointment,
   updateAppointment,
 } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 function StatusBadge({ status }: { status: BookingStatus }) {
+  const { t } = useLanguage();
   const label =
     status === "pending"
-      ? "Pendiente"
+      ? t("status.pending")
       : status === "confirmed"
-        ? "Confirmada"
-        : "Pagada";
+        ? t("status.confirmed")
+        : t("status.paid_fem");
 
   return <span className={`badge badge--${status}`}>{label}</span>;
 }
 
-function formatDate(date: string) {
+function formatDate(date: string, lang: string) {
   try {
-    return new Intl.DateTimeFormat("es-ES", {
+    return new Intl.DateTimeFormat(lang === "es" ? "es-ES" : "en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -41,6 +43,7 @@ export default function BookingsClient({
 }: {
   initialBookings: Booking[];
 }) {
+  const { t, lang } = useLanguage();
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
 
   const emptyForm: CreateBookingDto = {
@@ -161,9 +164,9 @@ export default function BookingsClient({
       setBookings((prev) => [created, ...prev]);
       resetCreateForm();
       setIsCreateOpen(false);
-      setSuccessMessage("Reserva creada correctamente.");
+      setSuccessMessage(t("bookings.form.success.create"));
     } catch {
-      setErrorMessage("No se pudo crear la reserva. Revisa los datos o el backend.");
+      setErrorMessage(t("bookings.form.error.create"));
     } finally {
       setLoadingCreate(false);
     }
@@ -198,9 +201,9 @@ export default function BookingsClient({
 
       setEditingBookingId(null);
       resetEditForm();
-      setSuccessMessage("Reserva actualizada correctamente.");
+      setSuccessMessage(t("bookings.form.success.update"));
     } catch {
-      setErrorMessage("No se pudo actualizar la reserva.");
+      setErrorMessage(t("bookings.form.error.update"));
     } finally {
       setLoadingEdit(false);
     }
@@ -221,10 +224,10 @@ export default function BookingsClient({
         closeEditForm();
       }
 
-      setSuccessMessage("Reserva eliminada correctamente.");
+      setSuccessMessage(t("bookings.form.success.delete"));
       closeDeleteModal();
     } catch {
-      setErrorMessage("No se pudo eliminar la reserva.");
+      setErrorMessage(t("bookings.form.error.delete"));
     } finally {
       setDeletingBookingId(null);
     }
@@ -234,51 +237,51 @@ export default function BookingsClient({
     <div className="page-stack">
       <section className="page-hero">
         <div>
-          <h2>Bookings list</h2>
-          <p>Gestión de reservas conectada con la API.</p>
+          <h2>{t("bookings.title")}</h2>
+          <p>{t("bookings.subtitle")}</p>
         </div>
 
         <button className="primary-btn" type="button" onClick={openCreateForm}>
-          Nueva reserva
+          {t("bookings.new")}
         </button>
       </section>
 
       <section className="kpi-grid">
         <div className="kpi-card">
-          <p className="kpi-card__label">Total reservas</p>
+          <p className="kpi-card__label">{t("bookings.total")}</p>
           <h3 className="kpi-card__value">{totalCount}</h3>
-          <p className="kpi-card__meta">Registros disponibles</p>
+          <p className="kpi-card__meta">{t("bookings.total.meta")}</p>
         </div>
 
         <div className="kpi-card">
-          <p className="kpi-card__label">Pendientes</p>
+          <p className="kpi-card__label">{t("status.pending")}</p>
           <h3 className="kpi-card__value">{pendingCount}</h3>
           <p className="kpi-card__meta kpi-card__meta--warning">
-            Requieren seguimiento
+            {t("bookings.pending.meta")}
           </p>
         </div>
 
         <div className="kpi-card">
-          <p className="kpi-card__label">Confirmadas</p>
+          <p className="kpi-card__label">{t("status.confirmed")}</p>
           <h3 className="kpi-card__value">{confirmedCount}</h3>
           <p className="kpi-card__meta kpi-card__meta--positive">
-            Estado activo
+            {t("bookings.confirmed.meta")}
           </p>
         </div>
 
         <div className="kpi-card">
-          <p className="kpi-card__label">Pagadas</p>
+          <p className="kpi-card__label">{t("status.paid_fem")}</p>
           <h3 className="kpi-card__value">{paidCount}</h3>
-          <p className="kpi-card__meta">Reservas cerradas</p>
+          <p className="kpi-card__meta">{t("bookings.paid.meta")}</p>
         </div>
       </section>
 
       {isCreateOpen && (
         <section className="section-card">
           <div className="panel-title-row">
-            <h3 className="panel-title">Nueva reserva</h3>
+            <h3 className="panel-title">{t("bookings.form.title")}</h3>
             <button type="button" className="secondary-btn" onClick={closeCreateForm}>
-              Cancelar
+              {t("customers.form.cancel")}
             </button>
           </div>
 
@@ -305,9 +308,9 @@ export default function BookingsClient({
                   updateCreateForm("status", e.target.value as BookingStatus)
                 }
               >
-                <option value="pending">Pendiente</option>
-                <option value="confirmed">Confirmada</option>
-                <option value="paid">Pagada</option>
+                <option value="pending">{t("status.pending")}</option>
+                <option value="confirmed">{t("status.confirmed")}</option>
+                <option value="paid">{t("status.paid_fem")}</option>
               </select>
               <input
                 className="input"
@@ -336,7 +339,7 @@ export default function BookingsClient({
                 type="text"
                 value={createForm.serviceName}
                 onChange={(e) => updateCreateForm("serviceName", e.target.value)}
-                placeholder="Servicio"
+                placeholder={t("table.service")}
                 required
               />
             </div>
@@ -345,7 +348,7 @@ export default function BookingsClient({
 
             <div className="message-row">
               <button className="primary-btn" type="submit" disabled={loadingCreate}>
-                {loadingCreate ? "Guardando..." : "Crear reserva"}
+                {loadingCreate ? t("customers.form.saving") : t("bookings.form.create")}
               </button>
             </div>
           </form>
@@ -355,9 +358,9 @@ export default function BookingsClient({
       {editingBookingId !== null && (
         <section className="section-card">
           <div className="panel-title-row">
-            <h3 className="panel-title">Editar reserva #{editingBookingId}</h3>
+            <h3 className="panel-title">{t("bookings.form.edit")} #{editingBookingId}</h3>
             <button type="button" className="secondary-btn" onClick={closeEditForm}>
-              Cancelar
+              {t("customers.form.cancel")}
             </button>
           </div>
 
@@ -384,9 +387,9 @@ export default function BookingsClient({
                   updateEditForm("status", e.target.value as BookingStatus)
                 }
               >
-                <option value="pending">Pendiente</option>
-                <option value="confirmed">Confirmada</option>
-                <option value="paid">Pagada</option>
+                <option value="pending">{t("status.pending")}</option>
+                <option value="confirmed">{t("status.confirmed")}</option>
+                <option value="paid">{t("status.paid_fem")}</option>
               </select>
               <input
                 className="input"
@@ -415,7 +418,7 @@ export default function BookingsClient({
                 type="text"
                 value={editForm.serviceName}
                 onChange={(e) => updateEditForm("serviceName", e.target.value)}
-                placeholder="Servicio"
+                placeholder={t("table.service")}
                 required
               />
             </div>
@@ -424,7 +427,7 @@ export default function BookingsClient({
 
             <div className="message-row">
               <button className="primary-btn" type="submit" disabled={loadingEdit}>
-                {loadingEdit ? "Guardando..." : "Guardar cambios"}
+                {loadingEdit ? t("customers.form.saving") : t("bookings.form.save")}
               </button>
             </div>
           </form>
@@ -445,10 +448,10 @@ export default function BookingsClient({
           <div className="modal-card">
             <div className="modal-icon">!</div>
             <h3 id="delete-modal-title" className="modal-title">
-              Eliminar reserva
+              {t("bookings.delete.title")}
             </h3>
             <p id="delete-modal-description" className="modal-text">
-              ¿Seguro que quieres eliminar la reserva #{deleteTargetId}? Esta acción no se puede deshacer.
+              {t("bookings.delete.text")}{deleteTargetId}? {t("bookings.delete.confirm")}
             </p>
             <div className="modal-actions">
               <button
@@ -456,7 +459,7 @@ export default function BookingsClient({
                 className="secondary-btn"
                 onClick={closeDeleteModal}
               >
-                Cancelar
+                {t("customers.form.cancel")}
               </button>
               <button
                 type="button"
@@ -464,7 +467,7 @@ export default function BookingsClient({
                 onClick={confirmDelete}
                 disabled={deletingBookingId === deleteTargetId}
               >
-                {deletingBookingId === deleteTargetId ? "Eliminando..." : "Eliminar"}
+                {deletingBookingId === deleteTargetId ? t("bookings.delete.deleting") : t("bookings.delete.action")}
               </button>
             </div>
           </div>
@@ -473,12 +476,12 @@ export default function BookingsClient({
 
       <section className="section-card">
         <div className="panel-title-row">
-          <h3 className="panel-title">Reservas registradas</h3>
+          <h3 className="panel-title">{t("bookings.list.title")}</h3>
           <div className="filter-row">
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("all")}>Todas</button>
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("pending")}>Pendientes</button>
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("confirmed")}>Confirmadas</button>
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("paid")}>Pagadas</button>
+            <button type="button" className="filter-pill" onClick={() => setStatusFilter("all")}>{t("bookings.filter.all")}</button>
+            <button type="button" className="filter-pill" onClick={() => setStatusFilter("pending")}>{t("status.pending")}</button>
+            <button type="button" className="filter-pill" onClick={() => setStatusFilter("confirmed")}>{t("status.confirmed")}</button>
+            <button type="button" className="filter-pill" onClick={() => setStatusFilter("paid")}>{t("status.paid_fem")}</button>
           </div>
         </div>
 
@@ -488,21 +491,21 @@ export default function BookingsClient({
         <table className="data-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Servicio</th>
-              <th>Customer</th>
-              <th>Business</th>
-              <th>Estado</th>
-              <th>Acciones</th>
+              <th>{t("table.id")}</th>
+              <th>{t("table.date")}</th>
+              <th>{t("table.time")}</th>
+              <th>{t("table.service")}</th>
+              <th>{t("table.customer")}</th>
+              <th>{t("table.business")}</th>
+              <th>{t("table.status")}</th>
+              <th>{t("table.action")}</th>
             </tr>
           </thead>
           <tbody>
             {filteredBookings.map((booking) => (
               <tr key={booking.id}>
                 <td style={{ fontWeight: 600 }}>{booking.id}</td>
-                <td>{formatDate(booking.date)}</td>
+                <td>{formatDate(booking.date, lang)}</td>
                 <td>{booking.time}</td>
                 <td>{booking.serviceName}</td>
                 <td>{booking.customerId}</td>
@@ -511,10 +514,10 @@ export default function BookingsClient({
                 <td>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button type="button" className="secondary-btn" onClick={() => openEditForm(booking)}>
-                      Editar
+                      {t("table.action")}
                     </button>
                     <button type="button" className="secondary-btn" onClick={() => openDeleteModal(booking.id)}>
-                      Eliminar
+                      {t("bookings.delete.action")}
                     </button>
                   </div>
                 </td>
