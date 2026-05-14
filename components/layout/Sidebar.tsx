@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
+import { useSidebar } from "@/context/SidebarContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
+  const { isCollapsed, toggleSidebar } = useSidebar();
 
   const menuItems = [
     {
@@ -44,7 +46,15 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="admin-sidebar">
+    <aside className={`admin-sidebar ${isCollapsed ? "admin-sidebar--collapsed" : ""}`}>
+      <button 
+        className="sidebar-toggle" 
+        onClick={toggleSidebar}
+        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+      >
+        <i className="bi bi-chevron-left"></i>
+      </button>
+
       <div className="admin-sidebar__brand">
         <h2 className="admin-sidebar__title">{t("app.brand")}</h2>
         <p className="admin-sidebar__subtitle">{t("app.workspace")}</p>
