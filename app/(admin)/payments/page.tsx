@@ -1,21 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import { createAppointment, deleteAppointment, getAppointments, type Booking } from "@/lib/api";
-
-
-// 1. Tipos alineados con la tabla 'pagos' de tu SQLite 
-type PaymentStatus = "Pagado" | "Pendiente";
-
-type Payment = {
-  idPago: number;
-  Cliente: string;
-  Comercio: string;
-  Importe: number;
-  Metodo: string;
-  fecha: string;
-  estado: PaymentStatus;
-};
+import { createPayment, deletePayment, getPayments } from "@/lib/api";
+import type { Payment, PaymentStatus } from "@/lib/types";
 
 // Componentes de apoyo
 function KpiCard({ title, value, subtitle, variant }: any) {
@@ -32,10 +19,10 @@ function KpiCard({ title, value, subtitle, variant }: any) {
 
 function Badge({ status }: { status: PaymentStatus }) {
   const { t } = useLanguage();
-  const isPaid = status === "Pagado";
+  const isPaid = status === "completed";
   return (
     <span className={`badge ${isPaid ? "badge--confirmed" : "badge--pending"}`}>
-      {status === "Pagado" ? t("status.paid") : t("status.pending")}
+      {status === "completed" ? t("status.paid") : t("status.pending")}
     </span>
   );
 }
@@ -56,9 +43,10 @@ function RegisterPaymentModal({
     amount: "",
     customerName: "",
     date: new Date().toISOString().split('T')[0],
+    paymentMethod: "Efectivo",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
@@ -78,16 +66,16 @@ function RegisterPaymentModal({
 
     setLoading(true);
     try {
-      const nowTime = new Date().toTimeString().slice(0, 5);
-
-      // Creamos la "cita" que actúa como cobro
-      await createAppointment({
+      // Registramos el pago directamente en la tabla 'payment'
+      await createPayment({
+        amount: parseFloat(form.amount),
         date: form.date,
-        time: nowTime,
-        status: 'paid',
-        customerId: 1, // ID genérico para cobros directos
-        businessId: 1,
-        serviceName: `Cobro ${parseFloat(form.amount).toFixed(2)} EUR - ${form.customerName.trim()}`,
+        paymentMethod: form.paymentMethod,
+        appointmentId: 1, // ID genérico o de cortesía si no hay cita previa
+        customerId: 1,    // ID genérico para cobros directos
+        status: "completed",
+        customerName: form.customerName.trim(),
+        notes: "Cobro directo registrado desde el panel de pagos"
       });
 
       onCreated();
@@ -150,6 +138,22 @@ function RegisterPaymentModal({
             />
           </div>
 
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
+              Método de Pago
+            </label>
+            <select 
+              className="input" 
+              name="paymentMethod" 
+              value={form.paymentMethod}
+              onChange={handleChange as any}
+            >
+              <option value="Efectivo">Efectivo</option>
+              <option value="Tarjeta">Tarjeta</option>
+              <option value="Transferencia">Transferencia</option>
+            </select>
+          </div>
+
           <div className="modal-actions" style={{ gridColumn: '1 / -1', marginTop: '16px' }}>
             <button type="button" className="secondary-btn" onClick={onClose} disabled={loading}>
               {t("customers.form.cancel")}
@@ -168,53 +172,30 @@ export default function PaymentsPage() {
 
   const { t } = useLanguage();
 
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [showModal, setShowModal] = useState(false);
 
   // Función para cargar los cobros desde el servidor
-  const loadBookings = async () => {
+  const loadPayments = async () => {
     try {
-      const data = await getAppointments();
-      setBookings(data);
+      const data = await getPayments();
+      setPayments(data);
     } catch (error) {
       console.error('Error cargando cobros', error);
     }
   };
 
   useEffect(() => {
-    void loadBookings();
+    void loadPayments();
   }, []);
-
-
-  function toPayment(booking: Booking): Payment {
-    // Extraer nombre del cliente del serviceName (formato: "Cobro {amount} EUR - {nombreCliente}")
-    const clientNameMatch = booking.serviceName.match(/EUR\s*-\s*(.+)/);
-    const clientName = clientNameMatch ? clientNameMatch[1].trim() : `Cliente #${booking.customerId}`;
-
-    return {
-      idPago: booking.id,
-      Cliente: clientName,
-      Comercio: `Comercio #${booking.businessId}`,
-      Importe: Number((booking.serviceName.match(/(\d+(?:\.\d+)?)/) || [0])[0]) || 0,
-      Metodo: 'Efectivo',
-      fecha: booking.date,
-      estado: booking.status === 'paid' ? 'Pagado' : 'Pendiente',
-    };
-  }
-
-  const paymentList = useMemo(() => bookings.filter((b) => b.status === 'paid').map(toPayment), [bookings]);
-
-  const handleRegisterPayment = () => {
-    setShowModal(true);
-  };
 
 
   const handleDelete = async (id: number) => {
     if (!confirm(t('bookings.delete.text') + id + "?")) return;
 
     try {
-      await deleteAppointment(id);
-      setBookings((prev) => prev.filter((b) => b.id !== id));
+      await deletePayment(id);
+      setPayments((prev) => prev.filter((p) => p.id !== id));
     } catch (error) {
       console.error('Error eliminando cobro', error);
       alert(t('bookings.form.error.delete'));
@@ -226,21 +207,20 @@ export default function PaymentsPage() {
   const handlePrint = (payment: Payment) => {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      const statusText = payment.estado === "Pagado" ? t("status.paid") : t("status.pending");
+      const statusText = payment.status === "completed" ? t("status.paid") : t("status.pending");
 
       printWindow.document.write(`
         <html>
-          <head><title>${t("receipt.title")} - ${payment.idPago}</title></head>
+          <head><title>${t("receipt.title")} - ${payment.id}</title></head>
           <body style="font-family: Arial, sans-serif; padding: 20px;">
             <div style="border: 1px solid #000; padding: 20px; max-width: 400px;">
               <h2 style="text-align: center;">${t("receipt.title")}</h2>
               <hr>
-              <p><strong>${t("receipt.id")}:</strong> ${payment.idPago}</p>
-              <p><strong>${t("table.customer")}:</strong> ${payment.Cliente}</p>
-              <p><strong>${t("table.business")}:</strong> ${payment.Comercio}</p>
-              <p><strong>${t("table.amount")}:</strong> ${payment.Importe} ${t("receipt.currency")}</p>
-              <p><strong>${t("receipt.method")}:</strong> ${payment.Metodo}</p>
-              <p><strong>${t("table.date")}:</strong> ${payment.fecha}</p>
+              <p><strong>${t("receipt.id")}:</strong> ${payment.id}</p>
+              <p><strong>${t("table.customer")}:</strong> ${payment.customerName || `Cliente #${payment.customerId}`}</p>
+              <p><strong>${t("table.amount")}:</strong> ${payment.amount} ${t("receipt.currency")}</p>
+              <p><strong>${t("receipt.method")}:</strong> ${payment.paymentMethod}</p>
+              <p><strong>${t("table.date")}:</strong> ${payment.date}</p>
               <p><strong>${t("table.status")}:</strong> ${statusText}</p>
               <hr>
               <p style="text-align: center;">${t("receipt.thanks")}</p>
@@ -258,7 +238,7 @@ export default function PaymentsPage() {
       {showModal && (
         <RegisterPaymentModal
           onClose={() => setShowModal(false)}
-          onCreated={loadBookings}
+          onCreated={loadPayments}
         />
       )}
       <div className="page-stack">
@@ -278,29 +258,28 @@ export default function PaymentsPage() {
           <button
             className="primary-btn btn-primary-action"
             type="button"
-            onClick={handleRegisterPayment}
+            onClick={() => setShowModal(true)}
           >
             {t("payments.register")}
           </button>
         </section>
 
-        {paymentList.length === 0 && (
+        {payments.length === 0 && (
           <p style={{ color: "var(--muted)", textAlign: "center" }}>{t("customers.empty")}</p>
         )}
 
         <section className="customer-grid">
-          {paymentList.map((p) => (
-            <div key={p.idPago} className="customer-card">
+          {payments.map((p) => (
+            <div key={p.id} className="customer-card">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                <p className="customer-name">#{p.idPago} · {p.Cliente}</p>
-                <Badge status={p.estado} />
+                <p className="customer-name">#{p.id} · {p.customerName || `Cliente #${p.customerId}`}</p>
+                <Badge status={p.status} />
               </div>
-              <p className="customer-meta">{p.fecha}</p>
-              <p className="customer-meta">{p.Comercio}</p>
-              <div className="customer-tag">{p.Importe} {t("receipt.currency")} · {p.Metodo}</div>
+              <p className="customer-meta">{p.date}</p>
+              <div className="customer-tag">{p.amount} {t("receipt.currency")} · {p.paymentMethod}</div>
               <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
                 <button className="secondary-btn btn-edit" style={{ flex: 1 }} onClick={() => handlePrint(p)}>{t("action.print")}</button>
-                <button className="danger-btn" style={{ flex: 1 }} onClick={() => handleDelete(p.idPago)}>{t("bookings.delete.action")}</button>
+                <button className="danger-btn" style={{ flex: 1 }} onClick={() => handleDelete(p.id)}>{t("bookings.delete.action")}</button>
               </div>
             </div>
           ))}
@@ -308,4 +287,4 @@ export default function PaymentsPage() {
       </div>
     </>
   );
-}
+}
