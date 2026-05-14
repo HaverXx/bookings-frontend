@@ -154,7 +154,7 @@ export default function BusinessesPage() {
             <h2>{t("businesses.title")}</h2>
             <p>{t("businesses.subtitle")}</p>
           </div>
-          <button className="primary-btn" type="button" onClick={() => setShowModal(true)}>
+          <button className="primary-btn btn-primary-action" type="button" onClick={() => setShowModal(true)}>
             {t("businesses.new")}
           </button>
         </section>
