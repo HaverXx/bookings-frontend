@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createCustomer, getCustomers } from "@/lib/api";
+import { createCustomer, deleteCustomer, getCustomers } from "@/lib/api";
 import type { Customer } from "@/lib/types";
 import type { CreateCustomerDto } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
@@ -120,14 +120,111 @@ function NewCustomerModal({
   );
 }
 
-function CustomerCard({ customer }: { customer: Customer }) {
+function CustomerDetailsModal({
+  customer,
+  onClose,
+}: {
+  customer: Customer;
+  onClose: () => void;
+}) {
+  const { t } = useLanguage();
+
   return (
-    <div className="customer-card">
-      <p className="customer-name">{customer.name}</p>
-      <p className="customer-meta">{customer.phone}</p>
-      <p className="customer-meta">{customer.email}</p>
-      <div className="customer-tag">{customer.business}</div>
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+        <p className="modal-title">{t("customers.view.title")}</p>
+        <p className="modal-text">{t("customers.view.text")}</p>
+
+        <div className="form-grid" style={{ marginBottom: 20 }}>
+          <div>
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>ID</label>
+            <div className="customer-tag">#{customer.id}</div>
+          </div>
+          <div>
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("customers.form.name")}</label>
+            <div className="customer-tag">{customer.name}</div>
+          </div>
+          <div>
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("customers.form.phone")}</label>
+            <div className="customer-tag">{customer.phone}</div>
+          </div>
+          <div>
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("customers.form.email")}</label>
+            <div className="customer-tag">{customer.email}</div>
+          </div>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("customers.form.business")}</label>
+            <div className="customer-tag">{customer.business}</div>
+          </div>
+        </div>
+
+        <div className="modal-actions">
+          <button className="secondary-btn" onClick={onClose}>
+            {t("customers.form.cancel")}
+          </button>
+        </div>
+      </div>
     </div>
+  );
+}
+
+function CustomerCard({
+  customer,
+  onDeleted,
+}: {
+  customer: Customer;
+  onDeleted: (id: number) => void;
+}) {
+  const { t } = useLanguage();
+  const [deleting, setDeleting] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+
+  async function handleDelete() {
+    if (!confirm(t("customers.delete.text"))) return;
+
+    setDeleting(true);
+    try {
+      await deleteCustomer(customer.id);
+      onDeleted(customer.id);
+    } catch {
+      alert(t("customers.delete.error"));
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <>
+      {showDetails && (
+        <CustomerDetailsModal customer={customer} onClose={() => setShowDetails(false)} />
+      )}
+      <div className="customer-card">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+          <p className="customer-name">#{customer.id} · {customer.name}</p>
+        </div>
+        <p className="customer-meta">{customer.phone}</p>
+        <p className="customer-meta">{customer.email}</p>
+        <div className="customer-tag">{customer.business}</div>
+
+        <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+          <button
+            className="secondary-btn btn-edit"
+            style={{ flex: 1 }}
+            onClick={() => setShowDetails(true)}
+          >
+            {t("customers.view.action")}
+          </button>
+          <button
+            className="danger-btn"
+            style={{ flex: 1 }}
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            {deleting ? t("customers.delete.deleting") : t("customers.delete.action")}
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -194,7 +291,11 @@ export default function CustomersPage() {
         {!loading && (
           <section className="customer-grid">
             {filtered.map((customer) => (
-              <CustomerCard key={customer.id} customer={customer} />
+              <CustomerCard
+                key={customer.id}
+                customer={customer}
+                onDeleted={(id) => setCustomers((prev) => prev.filter((c) => c.id !== id))}
+              />
             ))}
           </section>
         )}

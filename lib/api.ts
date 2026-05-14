@@ -118,11 +118,23 @@ export async function createCustomer(data: CreateCustomerDto): Promise<Customer>
   return res.json();
 }
 
+export async function deleteCustomer(id: number): Promise<{ message: string }> {
+  const res = await fetch(`${API_URL}/customers/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Error al eliminar el cliente');
+  return res.json();
+}
+
 //businesses
 import type { Business } from './types';
 
 export interface CreateBusinessDto {
   name: string;
+}
+
+export interface UpdateBusinessDto {
+  name?: string;
 }
 
 export async function getBusinesses(): Promise<Business[]> {
@@ -138,6 +150,16 @@ export async function createBusiness(data: CreateBusinessDto): Promise<Business>
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error('Error al crear el negocio');
+  return res.json();
+}
+
+export async function updateBusiness(id: number, data: UpdateBusinessDto): Promise<Business> {
+  const res = await fetch(`${API_URL}/businesses/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Error al editar el negocio');
   return res.json();
 }
 

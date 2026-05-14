@@ -573,9 +573,21 @@ body {
 .customer-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 22px;
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(12px);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.customer-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme='dark'] .customer-card:hover {
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
 }
 
 .customer-name {
@@ -594,6 +606,7 @@ body {
   width: fit-content;
   margin-top: 12px;
   background: var(--surface-2);
+  border: 1px solid var(--border);
   padding: 6px 10px;
   border-radius: 10px;
   font-size: 13px;
@@ -611,6 +624,15 @@ body {
 
 .search-row .input {
   flex: 1;
+}
+
+.btn-edit,
+.danger-btn {
+  min-height: 44px;
+}
+
+.secondary-btn.btn-edit {
+  background: var(--surface);
 }
 
 @media (max-width: 1200px) {
