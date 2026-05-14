@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import { createAppointment, deleteAppointment, getAppointments, type Booking } from "@/lib/api";
+import { createPayment, deletePayment, getPayments, type PaymentDto } from "@/lib/api";
 
 
 // 1. Tipos alineados con la tabla 'pagos' de tu SQLite 
@@ -80,14 +80,16 @@ function RegisterPaymentModal({
     try {
       const nowTime = new Date().toTimeString().slice(0, 5);
 
-      // Creamos la "cita" que actúa como cobro
-      await createAppointment({
+      // Registramos el cobro en la tabla payments
+      await createPayment({
+        amount: parseFloat(form.amount),
         date: form.date,
-        time: nowTime,
-        status: 'paid',
-        customerId: 1, // ID genérico para cobros directos
-        businessId: 1,
-        serviceName: `Cobro ${parseFloat(form.amount).toFixed(2)} EUR - ${form.customerName.trim()}`,
+        paymentMethod: "Efectivo",
+        appointmentId: 1, // ID genérico
+        customerId: 1, // ID genérico
+        status: "completed",
+        notes: "Cobro directo",
+        customerName: form.customerName.trim(),
       });
 
       onCreated();
@@ -168,41 +170,37 @@ export default function PaymentsPage() {
 
   const { t } = useLanguage();
 
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [paymentsDto, setPaymentsDto] = useState<PaymentDto[]>([]);
   const [showModal, setShowModal] = useState(false);
 
   // Función para cargar los cobros desde el servidor
-  const loadBookings = async () => {
+  const loadPayments = async () => {
     try {
-      const data = await getAppointments();
-      setBookings(data);
+      const data = await getPayments();
+      setPaymentsDto(data);
     } catch (error) {
       console.error('Error cargando cobros', error);
     }
   };
 
   useEffect(() => {
-    void loadBookings();
+    void loadPayments();
   }, []);
 
 
-  function toPayment(booking: Booking): Payment {
-    // Extraer nombre del cliente del serviceName (formato: "Cobro {amount} EUR - {nombreCliente}")
-    const clientNameMatch = booking.serviceName.match(/EUR\s*-\s*(.+)/);
-    const clientName = clientNameMatch ? clientNameMatch[1].trim() : `Cliente #${booking.customerId}`;
-
+  function toPayment(dto: PaymentDto): Payment {
     return {
-      idPago: booking.id,
-      Cliente: clientName,
-      Comercio: `Comercio #${booking.businessId}`,
-      Importe: Number((booking.serviceName.match(/(\d+(?:\.\d+)?)/) || [0])[0]) || 0,
-      Metodo: 'Efectivo',
-      fecha: booking.date,
-      estado: booking.status === 'paid' ? 'Pagado' : 'Pendiente',
+      idPago: dto.id,
+      Cliente: dto.customerName || `Cliente #${dto.customerId}`,
+      Comercio: `Comercio #1`,
+      Importe: Number(dto.amount) || 0,
+      Metodo: dto.paymentMethod || 'Efectivo',
+      fecha: dto.date,
+      estado: dto.status === 'completed' || dto.status === 'Pagado' ? 'Pagado' : 'Pendiente',
     };
   }
 
-  const paymentList = useMemo(() => bookings.filter((b) => b.status === 'paid').map(toPayment), [bookings]);
+  const paymentList = useMemo(() => paymentsDto.map(toPayment), [paymentsDto]);
 
   const handleRegisterPayment = () => {
     setShowModal(true);
@@ -213,8 +211,8 @@ export default function PaymentsPage() {
     if (!confirm(t('bookings.delete.text') + id + "?")) return;
 
     try {
-      await deleteAppointment(id);
-      setBookings((prev) => prev.filter((b) => b.id !== id));
+      await deletePayment(id);
+      setPaymentsDto((prev) => prev.filter((b) => b.id !== id));
     } catch (error) {
       console.error('Error eliminando cobro', error);
       alert(t('bookings.form.error.delete'));
@@ -258,7 +256,7 @@ export default function PaymentsPage() {
       {showModal && (
         <RegisterPaymentModal
           onClose={() => setShowModal(false)}
-          onCreated={loadBookings}
+          onCreated={loadPayments}
         />
       )}
       <div className="page-stack">
