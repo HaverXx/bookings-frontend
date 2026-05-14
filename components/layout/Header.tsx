@@ -114,7 +114,17 @@ export default function Header() {
           text-align: left;
         }
         .dropdown-item:hover {
-          background: var(--surface-2);
+          background: var(--primary-soft);
+          color: var(--accent);
+          transform: translateX(4px);
+        }
+        [data-theme='dark'] .dropdown-item:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--accent);
+          box-shadow: 0 0 10px rgba(96, 165, 250, 0.2);
+        }
+        .dropdown-item:active {
+          transform: scale(0.98);
         }
         .dropdown-item i {
           font-size: 16px;
