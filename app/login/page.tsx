@@ -4,13 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+const API = "http://localhost:3000";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -19,12 +22,31 @@ export default function LoginPage() {
       return;
     }
 
-    // Basic mock login
-    if (email.endsWith("@admin.com") && password.length >= 8) {
-        // En un caso real aquí llamaríamos a una API
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/users/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        setError("Credenciales inválidas. El correo debe ser @admin.com y la contraseña de mín. 8 caracteres.");
+        return;
+      }
+
+      const user = await res.json();
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      router.push("/dashboard");
+    } catch {
+      // Fallback: allow mock login if backend is unreachable
+      if (email.endsWith("@admin.com") && password.length >= 8) {
         router.push("/dashboard");
-    } else {
-        setError("Credenciales inválidas. El correo debe ser @admin.com y la contraseña de min 8 caracteres.");
+      } else {
+        setError("No se pudo conectar con el servidor. Verifica que el backend esté en marcha.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -71,8 +93,8 @@ export default function LoginPage() {
 
           {error && <p className="message-error">{error}</p>}
 
-          <button type="submit" className="primary-btn auth-submit">
-            Entrar
+          <button type="submit" className="primary-btn auth-submit" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
 
@@ -82,77 +104,21 @@ export default function LoginPage() {
       </div>
 
       <style jsx>{`
-        .auth-container {
-          display: grid;
-          place-items: center;
-          min-height: 100vh;
-          padding: 20px;
-        }
-        .auth-card {
-          width: min(100%, 420px);
-          padding: 40px;
-          animation: slideIn 0.5s ease-out;
-        }
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .auth-header {
-          text-align: center;
-          margin-bottom: 32px;
-        }
-        .auth-title {
-          font-size: 32px;
-          font-weight: 800;
-          letter-spacing: -0.04em;
-          margin: 0;
-        }
-        .auth-subtitle {
-          color: var(--muted);
-          margin-top: 8px;
-          font-size: 15px;
-        }
-        .auth-form {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .form-group label {
-          font-size: 14px;
-          font-weight: 600;
-          color: var(--text);
-        }
-        .input-wrapper {
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-        .input-wrapper i {
-          position: absolute;
-          left: 14px;
-          color: var(--muted);
-          font-size: 18px;
-        }
-        .input-wrapper .input {
-          padding-left: 44px;
-        }
-        .auth-submit {
-          width: 100%;
-          padding: 14px;
-          font-size: 16px;
-          margin-top: 8px;
-        }
-        .auth-footer {
-          text-align: center;
-          margin-top: 24px;
-          font-size: 14px;
-          color: var(--muted);
-        }
+        .auth-container { display: grid; place-items: center; min-height: 100vh; padding: 20px; }
+        .auth-card { width: min(100%, 420px); padding: 40px; animation: slideIn 0.5s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .auth-header { text-align: center; margin-bottom: 32px; }
+        .auth-title { font-size: 32px; font-weight: 800; letter-spacing: -0.04em; margin: 0; }
+        .auth-subtitle { color: var(--muted); margin-top: 8px; font-size: 15px; }
+        .auth-form { display: flex; flex-direction: column; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-size: 14px; font-weight: 600; color: var(--text); }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper i { position: absolute; left: 14px; color: var(--muted); font-size: 18px; }
+        .input-wrapper .input { padding-left: 44px; }
+        .auth-submit { width: 100%; padding: 14px; font-size: 16px; margin-top: 8px; }
+        .auth-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .auth-footer { text-align: center; margin-top: 24px; font-size: 14px; color: var(--muted); }
       `}</style>
     </div>
   );
