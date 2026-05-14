@@ -277,7 +277,7 @@ function BookingCard({
   onEdit: (b: Booking) => void;
   onDelete: (id: number) => void;
 }) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
 
   return (
     <div className="customer-card">
@@ -286,10 +286,10 @@ function BookingCard({
         <StatusBadge status={booking.status} />
       </div>
       <p className="customer-meta">{formatDate(booking.date, lang)} · {booking.time}</p>
-      <p className="customer-meta">Cliente: {booking.customerId} · Comercio: {booking.businessId}</p>
+      <p className="customer-meta">{t("bookings.customer_label")}: {booking.customerId} · {t("bookings.business_label")}: {booking.businessId}</p>
       <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-        <button className="secondary-btn btn-edit" style={{ flex: 1 }} onClick={() => onEdit(booking)}>Editar</button>
-        <button className="danger-btn" style={{ flex: 1 }} onClick={() => onDelete(booking.id)}>Eliminar</button>
+        <button className="secondary-btn btn-edit" style={{ flex: 1 }} onClick={() => onEdit(booking)}>{t("bookings.action.edit")}</button>
+        <button className="danger-btn" style={{ flex: 1 }} onClick={() => onDelete(booking.id)}>{t("bookings.action.delete")}</button>
       </div>
     </div>
   );

@@ -156,7 +156,7 @@ export default function UsersPage() {
               <div className="state-box">
                 <i className="bi bi-person-x" style={{ fontSize: 40, color: "var(--muted)" }}></i>
                 <p style={{ color: "var(--muted)" }}>
-                  {search ? "No se encontraron usuarios con ese criterio." : "Aún no hay usuarios registrados."}
+                  {search ? t("users.no_results") : t("users.empty")}
                 </p>
               </div>
             ) : (

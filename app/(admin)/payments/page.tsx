@@ -68,11 +68,11 @@ function RegisterPaymentModal({
 
     // Validaciones básicas
     if (!form.amount || parseFloat(form.amount) <= 0) {
-      alert("Por favor, introduce un importe válido.");
+      alert(t("payments.enter_amount"));
       return;
     }
     if (!form.customerName.trim()) {
-      alert("Por favor, introduce el nombre del cliente.");
+      alert(t("payments.alert.enter_customer"));
       return;
     }
 
@@ -189,12 +189,12 @@ export default function PaymentsPage() {
   function toPayment(booking: Booking): Payment {
     // Extraer nombre del cliente del serviceName (formato: "Cobro {amount} EUR - {nombreCliente}")
     const clientNameMatch = booking.serviceName.match(/EUR\s*-\s*(.+)/);
-    const clientName = clientNameMatch ? clientNameMatch[1].trim() : `Cliente #${booking.customerId}`;
+    const clientName = clientNameMatch ? clientNameMatch[1].trim() : `${t("payments.customer_not_found")}${booking.customerId}`;
 
     return {
       idPago: booking.id,
       Cliente: clientName,
-      Comercio: `Comercio #${booking.businessId}`,
+      Comercio: `${t("dashboard.business_label")} #${booking.businessId}`,
       Importe: Number((booking.serviceName.match(/(\d+(?:\.\d+)?)/) || [0])[0]) || 0,
       Metodo: 'Efectivo',
       fecha: booking.date,

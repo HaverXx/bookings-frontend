@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface UserProfile {
   name: string;
@@ -11,6 +12,7 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+  const { t } = useLanguage();
   const [user, setUser] = useState<UserProfile | null>(null);
   const router = useRouter();
 
@@ -39,8 +41,8 @@ export default function ProfilePage() {
     <div className="page-stack">
       <div className="page-hero">
         <div>
-          <h2>Mi Perfil</h2>
-          <p>Gestiona la información de tu cuenta</p>
+          <h2>{t("profile.title")}</h2>
+          <p>{t("profile.subtitle")}</p>
         </div>
       </div>
 
@@ -51,33 +53,33 @@ export default function ProfilePage() {
           </div>
           <div className="profile-main-info">
             <h3>{user.name} {user.lastName}</h3>
-            <span className="badge badge--confirmed">Administrador</span>
+            <span className="badge badge--confirmed">{t("profile.administrator")}</span>
           </div>
         </div>
 
         <div className="profile-details-grid">
           <div className="detail-item">
-            <label>Nombre Completo</label>
+            <label>{t("profile.full_name")}</label>
             <p>{user.name} {user.lastName}</p>
           </div>
           <div className="detail-item">
-            <label>Correo Electrónico</label>
+            <label>{t("profile.email")}</label>
             <p>{user.email}</p>
           </div>
           <div className="detail-item">
-            <label>Fecha de Nacimiento</label>
+            <label>{t("profile.birth_date")}</label>
             <p>{new Date(user.birthDate).toLocaleDateString()}</p>
           </div>
           <div className="detail-item">
-            <label>Rol de Usuario</label>
-            <p>Administrador de Reservas</p>
+            <label>{t("profile.user_role")}</label>
+            <p>{t("profile.booking_administrator")}</p>
           </div>
         </div>
 
         <div className="profile-actions">
           <button className="danger-btn" onClick={handleLogout}>
             <i className="bi bi-box-arrow-right"></i>
-            Cerrar sesión
+            {t("header.logout")}
           </button>
         </div>
       </div>

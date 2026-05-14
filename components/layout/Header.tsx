@@ -56,7 +56,7 @@ export default function Header() {
             className="admin-avatar" 
             onClick={toggleMenu}
             style={{ cursor: 'pointer' }}
-            title="Opciones de perfil"
+            title={t("header.profile_menu")}
           >
             AD
           </div>
@@ -65,12 +65,12 @@ export default function Header() {
             <div className="profile-dropdown surface-card">
               <button className="dropdown-item" onClick={handleViewProfile}>
                 <i className="bi bi-person"></i>
-                Ver perfil
+                {t("header.view_profile")}
               </button>
               <div className="dropdown-divider"></div>
               <button className="dropdown-item logout" onClick={handleLogout}>
                 <i className="bi bi-box-arrow-right"></i>
-                Cerrar sesión
+                {t("header.logout")}
               </button>
             </div>
           )}

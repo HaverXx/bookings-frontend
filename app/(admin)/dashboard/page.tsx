@@ -82,8 +82,8 @@ export default function DashboardPage() {
       .sort((a, b) => a.time.localeCompare(b.time))
       .map((appointment) => ({
         time: appointment.time,
-        client: `Cliente #${appointment.customerId}`,
-        business: `Comercio #${appointment.businessId}`,
+        client: `${t("dashboard.customer_label")} #${appointment.customerId}`,
+        business: `${t("dashboard.business_label")} #${appointment.businessId}`,
         service: appointment.serviceName,
         status: appointment.status,
       }));
@@ -99,8 +99,8 @@ export default function DashboardPage() {
       })
       .map((appointment) => ({
         time: `${appointment.date} · ${appointment.time}`,
-        client: `Cliente #${appointment.customerId}`,
-        business: `Comercio #${appointment.businessId}`,
+        client: `${t("dashboard.customer_label")} #${appointment.customerId}`,
+        business: `${t("dashboard.business_label")} #${appointment.businessId}`,
         service: appointment.serviceName,
         status: appointment.status,
       }));
@@ -135,14 +135,14 @@ export default function DashboardPage() {
       value: String(todayBookings.length),
       subtitle: (() => {
         const diff = todayBookings.length - yesterdayAppointments.length;
-        return `${diff >= 0 ? "+" : ""}${diff} respecto a ayer`;
+        return `${diff >= 0 ? "+" : ""}${diff} ${t("dashboard.compared_to_yesterday")}`;
       })(),
       variant: "positive" as const,
     },
     {
       title: t("dashboard.kpi.revenue"),
       value: `${totalPaidAmount} €`,
-      subtitle: `${paidCount} ${paidCount === 1 ? "pago registrado" : "pagos registrados"}`,
+      subtitle: `${paidCount} ${paidCount === 1 ? t("dashboard.payment_recorded") : t("dashboard.payments_recorded")}`,
     },
     {
       title: t("dashboard.kpi.pending"),
@@ -234,7 +234,7 @@ export default function DashboardPage() {
               {displayedBookings.length === 0 ? (
                 <tr>
                   <td colSpan={5} style={{ textAlign: "center", color: "#64748b" }}>
-                    No hay reservas para hoy
+                    {t("dashboard.no_bookings_today")}
                   </td>
                 </tr>
               ) : null}
@@ -246,17 +246,17 @@ export default function DashboardPage() {
           <div className="info-box">
             <p className="info-box__eyebrow">{t("dashboard.info.next")}</p>
             <p className="info-box__title">
-              {todayBookings[0]?.client ?? "Sin reservas"}
+              {todayBookings[0]?.client ?? t("dashboard.no_bookings")}
             </p>
             <p className="info-box__text">
-              {todayBookings[0] ? `${todayBookings[0].time} · ${todayBookings[0].business}` : "No hay reservas para hoy"}
+              {todayBookings[0] ? `${todayBookings[0].time} · ${todayBookings[0].business}` : t("dashboard.no_bookings_today")}
             </p>
           </div>
 
           <div className="info-box">
             <p className="info-box__eyebrow">{t("dashboard.info.featured")}</p>
             <p className="info-box__title">{todayBookings.length}</p>
-            <p className="info-box__text">Reservas hoy</p>
+            <p className="info-box__text">{t("dashboard.bookings_today")}</p>
           </div>
 
           <div className="info-box">
