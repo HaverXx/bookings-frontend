@@ -102,6 +102,13 @@ export interface CreateCustomerDto {
   business: string;
 }
 
+export interface UpdateCustomerDto {
+  name?: string;
+  phone?: string;
+  email?: string;
+  business?: string;
+}
+
 export async function getCustomers(): Promise<Customer[]> {
   const res = await fetch(`${API_URL}/customers`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Error al obtener los clientes');
@@ -115,6 +122,16 @@ export async function createCustomer(data: CreateCustomerDto): Promise<Customer>
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error('Error al crear el cliente');
+  return res.json();
+}
+
+export async function updateCustomer(id: number, data: UpdateCustomerDto): Promise<Customer> {
+  const res = await fetch(`${API_URL}/customers/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Error al editar el cliente');
   return res.json();
 }
 
@@ -178,8 +195,8 @@ export interface CreatePaymentDto {
   amount: number;
   date: string;
   paymentMethod: string;
-  appointmentId: number;
-  customerId: number;
+  appointmentId?: number;
+  customerId?: number;
   status: PaymentStatus;
   notes?: string;
   customerName?: string;

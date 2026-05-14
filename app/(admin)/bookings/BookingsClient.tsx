@@ -305,7 +305,6 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
   const [showCreate, setShowCreate] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [successMessage, setSuccessMessage] = useState("");
 
   const totalCount = bookings.length;
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
@@ -328,7 +327,6 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
           onClose={() => setShowCreate(false)}
           onCreated={(b) => {
             setBookings((prev) => [b, ...prev]);
-            setSuccessMessage(t("bookings.form.success.create"));
           }}
         />
       )}
@@ -338,7 +336,6 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
           onClose={() => setEditingBooking(null)}
           onUpdated={(b) => {
             setBookings((prev) => prev.map((x) => x.id === b.id ? b : x));
-            setSuccessMessage(t("bookings.form.success.update"));
           }}
         />
       )}
@@ -348,7 +345,6 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
           onClose={() => setDeletingId(null)}
           onDeleted={(id) => {
             setBookings((prev) => prev.filter((x) => x.id !== id));
-            setSuccessMessage(t("bookings.form.success.delete"));
           }}
         />
       )}
@@ -404,7 +400,6 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
           </div>
         </section>
 
-        {successMessage && <p className="message-success">{successMessage}</p>}
 
         {filtered.length === 0 && (
           <p style={{ color: "var(--muted)", textAlign: "center" }}>{t("customers.empty")}</p>

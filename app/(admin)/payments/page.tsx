@@ -69,8 +69,6 @@ function RegisterPaymentModal({
         amount: Number(form.amount),
         date: form.date,
         paymentMethod: form.paymentMethod,
-        appointmentId: 1, // ID genérico o de cortesía si no hay cita previa
-        customerId: 1,    // ID genérico para cobros directos
         status: "completed",
         customerName: form.customerName.trim(),
         notes: "Cobro directo registrado desde el panel de pagos"
