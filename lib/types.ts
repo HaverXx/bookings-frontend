@@ -24,3 +24,18 @@ export type Business = {
   businessID: number;
   name: string;
 };
+
+//payments
+export type PaymentStatus = "pending" | "completed" | "refunded" | "cancelled";
+
+export type Payment = {
+  id: number;
+  amount: number;
+  date: string;
+  paymentMethod: string;
+  appointmentId: number;
+  customerId: number;
+  status: PaymentStatus;
+  notes?: string;
+  customerName?: string;
+};

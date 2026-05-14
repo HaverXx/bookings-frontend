@@ -149,18 +149,8 @@ export async function deleteBusiness(id: number): Promise<{ message: string }> {
   return res.json();
 }
 
-// payments
-export interface PaymentDto {
-  id: number;
-  amount: number;
-  date: string;
-  paymentMethod: string;
-  appointmentId: number;
-  customerId: number;
-  status: string;
-  notes?: string;
-  customerName?: string;
-}
+//payments
+import type { Payment, PaymentStatus } from './types';
 
 export interface CreatePaymentDto {
   amount: number;
@@ -168,24 +158,24 @@ export interface CreatePaymentDto {
   paymentMethod: string;
   appointmentId: number;
   customerId: number;
-  status: string;
+  status: PaymentStatus;
   notes?: string;
   customerName?: string;
 }
 
-export async function getPayments(): Promise<PaymentDto[]> {
+export async function getPayments(): Promise<Payment[]> {
   const res = await fetch(`${API_URL}/payments`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Error al obtener los pagos');
   return res.json();
 }
 
-export async function createPayment(data: CreatePaymentDto): Promise<PaymentDto> {
+export async function createPayment(data: CreatePaymentDto): Promise<Payment> {
   const res = await fetch(`${API_URL}/payments`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Error al crear el pago');
+  if (!res.ok) throw new Error('Error al registrar el pago');
   return res.json();
 }
 
@@ -195,4 +185,4 @@ export async function deletePayment(id: number): Promise<{ message: string }> {
   });
   if (!res.ok) throw new Error('Error al eliminar el pago');
   return res.json();
-}
+}
