@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { createPayment, deletePayment, getPayments } from "@/lib/api";
 import type { Payment, PaymentStatus } from "@/lib/types";
@@ -27,9 +28,6 @@ function Badge({ status }: { status: PaymentStatus }) {
   );
 }
 
-/**
- * Componente Modal para registrar un nuevo cobro
- */
 function RegisterPaymentModal({
   onClose,
   onCreated,
@@ -48,17 +46,17 @@ function RegisterPaymentModal({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  };
+    setForm((prev) => ({ ...prev, [name]: value }));
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    // Validaciones básicas
-    if (!form.amount || parseFloat(form.amount) <= 0) {
+    if (!form.amount || Number(form.amount) <= 0) {
       alert(t("payments.enter_amount"));
       return;
     }
+
     if (!form.customerName.trim()) {
       alert(t("payments.alert.enter_customer"));
       return;
@@ -68,7 +66,7 @@ function RegisterPaymentModal({
     try {
       // Registramos el pago directamente en la tabla 'payment'
       await createPayment({
-        amount: parseFloat(form.amount),
+        amount: Number(form.amount),
         date: form.date,
         paymentMethod: form.paymentMethod,
         appointmentId: 1, // ID genérico o de cortesía si no hay cita previa
@@ -81,12 +79,12 @@ function RegisterPaymentModal({
       onCreated();
       onClose();
     } catch (error) {
-      console.error('Error al registrar cobro:', error);
-      alert('Error: No se pudo conectar con el servidor para registrar el cobro.');
+      console.error("Error al registrar cobro:", error);
+      alert("Error: No se pudo conectar con el servidor para registrar el cobro.");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -95,7 +93,7 @@ function RegisterPaymentModal({
         <p className="modal-text">{t("payments.subtitle")}</p>
 
         <form onSubmit={handleSubmit} className="form-grid">
-          <div style={{ gridColumn: '1 / -1' }}>
+          <div style={{ gridColumn: "1 / -1" }}>
             <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
               {t("table.customer")}
             </label>
@@ -109,6 +107,7 @@ function RegisterPaymentModal({
               autoFocus
             />
           </div>
+
           <div>
             <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
               {t("table.amount")}
@@ -124,6 +123,7 @@ function RegisterPaymentModal({
               required
             />
           </div>
+
           <div>
             <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
               {t("table.date")}
@@ -169,21 +169,19 @@ function RegisterPaymentModal({
 }
 
 export default function PaymentsPage() {
-
   const { t } = useLanguage();
 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [showModal, setShowModal] = useState(false);
 
-  // Función para cargar los cobros desde el servidor
-  const loadPayments = async () => {
+  async function loadPayments() {
     try {
       const data = await getPayments();
       setPayments(data);
     } catch (error) {
-      console.error('Error cargando cobros', error);
+      console.error("Error cargando cobros", error);
     }
-  };
+  }
 
   useEffect(() => {
     void loadPayments();
@@ -196,57 +194,52 @@ export default function PaymentsPage() {
       await deletePayment(id);
       setPayments((prev) => prev.filter((p) => p.id !== id));
     } catch (error) {
-      console.error('Error eliminando cobro', error);
-      alert(t('bookings.form.error.delete'));
+      console.error("Error eliminando cobro", error);
+      alert(t("bookings.form.error.delete"));
     }
-  };
-
-  // Función de Impresión: Genera una ventana con el formato de recibo
+  }
 
   const handlePrint = (payment: Payment) => {
     const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      const statusText = payment.status === "completed" ? t("status.paid") : t("status.pending");
+    if (!printWindow) return;
+    
+    const statusText = payment.status === "completed" ? t("status.paid") : t("status.pending");
 
-      printWindow.document.write(`
-        <html>
-          <head><title>${t("receipt.title")} - ${payment.id}</title></head>
-          <body style="font-family: Arial, sans-serif; padding: 20px;">
-            <div style="border: 1px solid #000; padding: 20px; max-width: 400px;">
-              <h2 style="text-align: center;">${t("receipt.title")}</h2>
-              <hr>
-              <p><strong>${t("receipt.id")}:</strong> ${payment.id}</p>
-              <p><strong>${t("table.customer")}:</strong> ${payment.customerName || `Cliente #${payment.customerId}`}</p>
-              <p><strong>${t("table.amount")}:</strong> ${payment.amount} ${t("receipt.currency")}</p>
-              <p><strong>${t("receipt.method")}:</strong> ${payment.paymentMethod}</p>
-              <p><strong>${t("table.date")}:</strong> ${payment.date}</p>
-              <p><strong>${t("table.status")}:</strong> ${statusText}</p>
-              <hr>
-              <p style="text-align: center;">${t("receipt.thanks")}</p>
-            </div>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
-    }
+    printWindow.document.write(`
+      <html>
+        <head><title>${t("receipt.title")} - ${payment.id}</title></head>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+          <div style="border: 1px solid #000; padding: 20px; max-width: 400px;">
+            <h2 style="text-align: center;">${t("receipt.title")}</h2>
+            <hr>
+            <p><strong>${t("receipt.id")}:</strong> ${payment.id}</p>
+            <p><strong>${t("table.customer")}:</strong> ${payment.customerName || `Cliente #${payment.customerId}`}</p>
+            <p><strong>${t("table.amount")}:</strong> ${payment.amount} ${t("receipt.currency")}</p>
+            <p><strong>${t("receipt.method")}:</strong> ${payment.paymentMethod}</p>
+            <p><strong>${t("table.date")}:</strong> ${payment.date}</p>
+            <p><strong>${t("table.status")}:</strong> ${statusText}</p>
+            <hr>
+            <p style="text-align: center;">${t("receipt.thanks")}</p>
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
   };
 
   return (
     <>
-      {showModal && (
-        <RegisterPaymentModal
-          onClose={() => setShowModal(false)}
-          onCreated={loadPayments}
-        />
-      )}
-      <div className="page-stack">
+      {showModal && <RegisterPaymentModal onClose={() => setShowModal(false)} onCreated={loadPayments} />}
 
+      <div className="page-stack">
         <style jsx global>{`
-        @media print {
-          .no-print { display: none !important; }
-        }
-      `}</style>
+          @media print {
+            .no-print {
+              display: none !important;
+            }
+          }
+        `}</style>
 
         <section className="page-hero no-print">
           <div>

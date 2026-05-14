@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 const API = "http://localhost:3000";
 
@@ -81,6 +82,7 @@ function avatarColor(id: number) {
 }
 
 export default function UsersPage() {
+  const { t } = useLanguage();
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
