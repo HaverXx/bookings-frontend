@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createCustomer, deleteCustomer, getCustomers, updateCustomer } from "@/lib/api";
-import type { Customer } from "@/lib/types";
+import { createCustomer, deleteCustomer, getCustomers, updateCustomer, getBusinesses } from "@/lib/api";
+import type { Customer, Business } from "@/lib/types";
 import type { CreateCustomerDto, UpdateCustomerDto } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -10,7 +10,7 @@ const EMPTY_FORM: CreateCustomerDto = {
   name: "",
   phone: "",
   email: "",
-  business: "",
+  businessId: 0,
 };
 
 function NewCustomerModal({
@@ -21,16 +21,32 @@ function NewCustomerModal({
   onCreated: (c: Customer) => void;
 }) {
   const { t } = useLanguage();
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [form, setForm] = useState<CreateCustomerDto>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  useEffect(() => {
+    getBusinesses()
+      .then((data) => {
+        setBusinesses(data);
+        if (data.length > 0) {
+          setForm((prev) => ({ ...prev, businessId: data[0].businessID }));
+        }
+      })
+      .catch(() => setError("Error al cargar los negocios."));
+  }, []);
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "businessId" ? Number(value) : value,
+    }));
   }
 
   async function handleSubmit() {
-    if (!form.name || !form.phone || !form.email || !form.business) {
+    if (!form.name || !form.phone || !form.email || !form.businessId) {
       setError(t("customers.form.error.required"));
       return;
     }
@@ -95,13 +111,22 @@ function NewCustomerModal({
             <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
               {t("customers.form.business")}
             </label>
-            <input
-              className="input"
-              name="business"
-              placeholder="Peluquería Nova"
-              value={form.business}
+            <select
+              className="select"
+              name="businessId"
+              value={form.businessId}
               onChange={handleChange}
-            />
+            >
+              {businesses.length === 0 ? (
+                <option value={0}>Cargando negocios...</option>
+              ) : (
+                businesses.map((b) => (
+                  <option key={b.businessID} value={b.businessID}>
+                    {b.name} (ID: {b.businessID})
+                  </option>
+                ))
+              )}
+            </select>
           </div>
         </div>
 
@@ -130,21 +155,37 @@ function EditCustomerModal({
   onUpdated: (c: Customer) => void;
 }) {
   const { t } = useLanguage();
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [form, setForm] = useState<CreateCustomerDto>({
     name: customer.name || "",
     phone: customer.phone || "",
     email: customer.email || "",
-    business: customer.business || "",
+    businessId: customer.businessId || 0,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  useEffect(() => {
+    getBusinesses()
+      .then((data) => {
+        setBusinesses(data);
+        if (!form.businessId && data.length > 0) {
+          setForm((prev) => ({ ...prev, businessId: data[0].businessID }));
+        }
+      })
+      .catch(() => setError("Error al cargar los negocios."));
+  }, [form.businessId]);
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "businessId" ? Number(value) : value,
+    }));
   }
 
   async function handleSubmit() {
-    if (!form.name || !form.phone || !form.email || !form.business) {
+    if (!form.name || !form.phone || !form.email || !form.businessId) {
       setError(t("customers.form.error.required"));
       return;
     }
@@ -191,7 +232,22 @@ function EditCustomerModal({
             <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
               {t("customers.form.business")}
             </label>
-            <input className="input" name="business" value={form.business} onChange={handleChange} />
+            <select
+              className="select"
+              name="businessId"
+              value={form.businessId}
+              onChange={handleChange}
+            >
+              {businesses.length === 0 ? (
+                <option value={0}>Cargando negocios...</option>
+              ) : (
+                businesses.map((b) => (
+                  <option key={b.businessID} value={b.businessID}>
+                    {b.name} (ID: {b.businessID})
+                  </option>
+                ))
+              )}
+            </select>
           </div>
         </div>
 
@@ -223,6 +279,11 @@ function CustomerCard({
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
+    if (customer.name.toLowerCase() === "jose") {
+      alert("No está permitido eliminar al cliente Jose.");
+      return;
+    }
+
     if (!confirm(t("customers.delete.text"))) return;
 
     setDeleting(true);

@@ -99,14 +99,14 @@ export interface CreateCustomerDto {
   name: string;
   phone: string;
   email: string;
-  business: string;
+  businessId: number;
 }
 
 export interface UpdateCustomerDto {
   name?: string;
   phone?: string;
   email?: string;
-  business?: string;
+  businessId?: number;
 }
 
 export async function getCustomers(): Promise<Customer[]> {

@@ -17,6 +17,7 @@ export type Customer = {
   phone: string;
   email: string;
   business: string;
+  businessId?: number;
 };
 
 //businesses
