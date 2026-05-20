@@ -1,18 +1,54 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Booking, BookingStatus, CreateBookingDto, UpdateBookingDto } from "@/lib/api";
-import { createAppointment, deleteAppointment, updateAppointment } from "@/lib/api";
+import { createAppointment, deleteAppointment, getBusinesses, getCustomers, updateAppointment } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
+import type { Business, Customer } from "@/lib/types";
 
-const EMPTY_FORM: CreateBookingDto = {
+type BookingFormState = {
+  date: string;
+  time: string;
+  status: BookingStatus;
+  customerName: string;
+  businessName: string;
+  serviceName: string;
+};
+
+const EMPTY_FORM: BookingFormState = {
   date: "",
   time: "",
   status: "pending",
-  customerId: 1,
-  businessId: 1,
+  customerName: "",
+  businessName: "",
   serviceName: "",
 };
+
+function normalizeName(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function resolveBookingPayload(
+  form: BookingFormState,
+  customers: Customer[],
+  businesses: Business[]
+): CreateBookingDto | null {
+  const customer = customers.find((item) => normalizeName(item.name) === normalizeName(form.customerName));
+  const business = businesses.find((item) => normalizeName(item.name) === normalizeName(form.businessName));
+
+  if (!customer || !business) {
+    return null;
+  }
+
+  return {
+    date: form.date,
+    time: form.time,
+    status: form.status,
+    customerId: customer.id,
+    businessId: business.businessID,
+    serviceName: form.serviceName,
+  };
+}
 
 function StatusBadge({ status }: { status: BookingStatus }) {
   const { t } = useLanguage();
@@ -36,12 +72,16 @@ function formatDate(date: string, lang: string) {
 function NewBookingModal({
   onClose,
   onCreated,
+  customers,
+  businesses,
 }: {
   onClose: () => void;
   onCreated: (b: Booking) => void;
+  customers: Customer[];
+  businesses: Business[];
 }) {
   const { t } = useLanguage();
-  const [form, setForm] = useState<CreateBookingDto>(EMPTY_FORM);
+  const [form, setForm] = useState<BookingFormState>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,19 +89,26 @@ function NewBookingModal({
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name === "customerId" || name === "businessId" ? Number(value) : value,
+      [name]: value,
     }));
   }
 
   async function handleSubmit() {
-    if (!form.date || !form.time || !form.serviceName) {
+    if (!form.date || !form.time || !form.serviceName || !form.customerName || !form.businessName) {
       setError(t("bookings.form.error.create"));
       return;
     }
+
+    const payload = resolveBookingPayload(form, customers, businesses);
+    if (!payload) {
+      setError(t("bookings.form.error.resolve"));
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const created = await createAppointment(form);
+      const created = await createAppointment(payload);
       onCreated(created);
       onClose();
     } catch {
@@ -95,12 +142,22 @@ function NewBookingModal({
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.customerId")}</label>
-            <input className="input" name="customerId" type="number" min={1} value={form.customerId} onChange={handleChange} />
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.customerName")}</label>
+            <select className="select" name="customerName" value={form.customerName} onChange={handleChange}>
+              <option value="">{t("bookings.form.customerName.placeholder")}</option>
+              {customers.map((customer) => (
+                <option key={customer.id} value={customer.name}>{customer.name}</option>
+              ))}
+            </select>
           </div>
           <div>
-            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.businessId")}</label>
-            <input className="input" name="businessId" type="number" min={1} value={form.businessId} onChange={handleChange} />
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.businessName")}</label>
+            <select className="select" name="businessName" value={form.businessName} onChange={handleChange}>
+              <option value="">{t("bookings.form.businessName.placeholder")}</option>
+              {businesses.map((business) => (
+                <option key={business.businessID} value={business.name}>{business.name}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.serviceName")}</label>
@@ -127,37 +184,50 @@ function EditBookingModal({
   booking,
   onClose,
   onUpdated,
+  customers,
+  businesses,
 }: {
   booking: Booking;
   onClose: () => void;
   onUpdated: (b: Booking) => void;
+  customers: Customer[];
+  businesses: Business[];
 }) {
   const { t } = useLanguage();
-  const [form, setForm] = useState<CreateBookingDto>({
-    date: booking.date,
-    time: booking.time,
-    status: booking.status,
-    customerId: booking.customerId,
-    businessId: booking.businessId,
-    serviceName: booking.serviceName,
-  });
+  const [form, setForm] = useState<BookingFormState>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setForm({
+      date: booking.date,
+      time: booking.time,
+      status: booking.status,
+      customerName: customers.find((customer) => customer.id === booking.customerId)?.name ?? "",
+      businessName: businesses.find((business) => business.businessID === booking.businessId)?.name ?? "",
+      serviceName: booking.serviceName,
+    });
+  }, [booking, customers, businesses]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name === "customerId" || name === "businessId" ? Number(value) : value,
+      [name]: value,
     }));
   }
 
   async function handleSubmit() {
+    const payload = resolveBookingPayload(form, customers, businesses);
+    if (!payload) {
+      setError(t("bookings.form.error.resolve"));
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const payload: UpdateBookingDto = { ...form };
-      const updated = await updateAppointment(booking.id, payload);
+      const updated = await updateAppointment(booking.id, payload as UpdateBookingDto);
       onUpdated(updated);
       onClose();
     } catch {
@@ -191,12 +261,22 @@ function EditBookingModal({
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.customerId")}</label>
-            <input className="input" name="customerId" type="number" min={1} value={form.customerId} onChange={handleChange} />
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.customerName")}</label>
+            <select className="select" name="customerName" value={form.customerName} onChange={handleChange}>
+              <option value="">{t("bookings.form.customerName.placeholder")}</option>
+              {customers.map((customer) => (
+                <option key={customer.id} value={customer.name}>{customer.name}</option>
+              ))}
+            </select>
           </div>
           <div>
-            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.businessId")}</label>
-            <input className="input" name="businessId" type="number" min={1} value={form.businessId} onChange={handleChange} />
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.businessName")}</label>
+            <select className="select" name="businessName" value={form.businessName} onChange={handleChange}>
+              <option value="">{t("bookings.form.businessName.placeholder")}</option>
+              {businesses.map((business) => (
+                <option key={business.businessID} value={business.name}>{business.name}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>{t("bookings.form.serviceName")}</label>
@@ -272,10 +352,14 @@ function BookingCard({
   booking,
   onEdit,
   onDelete,
+  customerName,
+  businessName,
 }: {
   booking: Booking;
   onEdit: (b: Booking) => void;
   onDelete: (id: number) => void;
+  customerName: string;
+  businessName: string;
 }) {
   const { lang, t } = useLanguage();
 
@@ -286,7 +370,7 @@ function BookingCard({
         <StatusBadge status={booking.status} />
       </div>
       <p className="customer-meta">{formatDate(booking.date, lang)} · {booking.time}</p>
-      <p className="customer-meta">{t("bookings.customer_label")}: {booking.customerId} · {t("bookings.business_label")}: {booking.businessId}</p>
+      <p className="customer-meta">{t("bookings.customer_label")}: {customerName} · {t("bookings.business_label")}: {businessName}</p>
       <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
         <button className="secondary-btn btn-edit" style={{ flex: 1 }} onClick={() => onEdit(booking)}>{t("bookings.action.edit")}</button>
         <button className="danger-btn" style={{ flex: 1 }} onClick={() => onDelete(booking.id)}>{t("bookings.action.delete")}</button>
@@ -300,11 +384,30 @@ function BookingCard({
 export default function BookingsClient({ initialBookings }: { initialBookings: Booking[] }) {
   const { t } = useLanguage();
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  useEffect(() => {
+    async function loadCatalogs() {
+      try {
+        const [customerList, businessList] = await Promise.all([getCustomers(), getBusinesses()]);
+        setCustomers(customerList);
+        setBusinesses(businessList);
+      } catch (error) {
+        console.error("Error cargando catálogos para reservas", error);
+      }
+    }
+
+    void loadCatalogs();
+  }, []);
+
+  const customerNameById = useMemo(() => new Map(customers.map((customer) => [customer.id, customer.name])), [customers]);
+  const businessNameById = useMemo(() => new Map(businesses.map((business) => [business.businessID, business.name])), [businesses]);
 
   const totalCount = bookings.length;
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
@@ -325,6 +428,8 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
       {showCreate && (
         <NewBookingModal
           onClose={() => setShowCreate(false)}
+          customers={customers}
+          businesses={businesses}
           onCreated={(b) => {
             setBookings((prev) => [b, ...prev]);
           }}
@@ -333,6 +438,8 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
       {editingBooking && (
         <EditBookingModal
           booking={editingBooking}
+          customers={customers}
+          businesses={businesses}
           onClose={() => setEditingBooking(null)}
           onUpdated={(b) => {
             setBookings((prev) => prev.map((x) => x.id === b.id ? b : x));
@@ -410,6 +517,8 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
             <BookingCard
               key={booking.id}
               booking={booking}
+              customerName={customerNameById.get(booking.customerId) ?? `${t("bookings.customer_label")} #${booking.customerId}`}
+              businessName={businessNameById.get(booking.businessId) ?? `${t("bookings.business_label")} #${booking.businessId}`}
               onEdit={setEditingBooking}
               onDelete={setDeletingId}
             />
