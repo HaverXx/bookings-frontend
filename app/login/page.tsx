@@ -39,15 +39,15 @@ export default function LoginPage() {
       localStorage.setItem("currentUser", JSON.stringify(user));
       router.push("/dashboard");
     } catch {
-      // Fallback: allow mock login if backend is unreachable
-      if (email.endsWith("@admin.com") && password.length >= 8) {
-        router.push("/dashboard");
-      } else {
-        setError("No se pudo conectar con el servidor. Verifica que el backend esté en marcha.");
-      }
-    } finally {
-      setLoading(false);
-    }
+  if (email.endsWith("@admin.com") && password.length >= 8) {
+    // Guardar sesión mock consistente con el backend
+    const mockUser = { email, name: "Admin", role: "admin" };
+    localStorage.setItem("currentUser", JSON.stringify(mockUser));
+    router.push("/dashboard");
+  } else {
+    setError("No se pudo conectar con el servidor.");
+  }
+}
   };
 
   return (

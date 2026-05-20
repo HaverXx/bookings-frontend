@@ -13,10 +13,13 @@ export default function Header() {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  const handleLogout = () => {
-    setIsMenuOpen(false);
-    router.push("/login");
-  };
+  
+const handleLogout = () => {
+  setIsMenuOpen(false);
+  localStorage.removeItem("currentUser");
+  // Reemplaza todo el historial para que el botón atrás no funcione
+  window.location.replace("/login");
+};
 
   const handleViewProfile = () => {
     setIsMenuOpen(false);
