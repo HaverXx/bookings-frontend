@@ -47,6 +47,8 @@ function resolveBookingPayload(
     customerId: customer.id,
     businessId: business.businessID,
     serviceName: form.serviceName,
+    customerName: customer.name,
+    businessName: business.name,
   };
 }
 
@@ -203,8 +205,8 @@ function EditBookingModal({
       date: booking.date,
       time: booking.time,
       status: booking.status,
-      customerName: customers.find((customer) => customer.id === booking.customerId)?.name ?? "",
-      businessName: businesses.find((business) => business.businessID === booking.businessId)?.name ?? "",
+      customerName: booking.customerName ?? customers.find((customer) => customer.id === booking.customerId)?.name ?? "",
+      businessName: booking.businessName ?? businesses.find((business) => business.businessID === booking.businessId)?.name ?? "",
       serviceName: booking.serviceName,
     });
   }, [booking, customers, businesses]);
@@ -517,8 +519,8 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
             <BookingCard
               key={booking.id}
               booking={booking}
-              customerName={customerNameById.get(booking.customerId) ?? `${t("bookings.customer_label")} #${booking.customerId}`}
-              businessName={businessNameById.get(booking.businessId) ?? `${t("bookings.business_label")} #${booking.businessId}`}
+              customerName={booking.customerName ?? customerNameById.get(booking.customerId) ?? `${t("bookings.customer_label")} #${booking.customerId}`}
+              businessName={booking.businessName ?? businessNameById.get(booking.businessId) ?? `${t("bookings.business_label")} #${booking.businessId}`}
               onEdit={setEditingBooking}
               onDelete={setDeletingId}
             />

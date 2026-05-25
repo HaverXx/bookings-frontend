@@ -8,6 +8,8 @@ export interface Booking {
   customerId: number;
   businessId: number;
   serviceName: string;
+  customerName?: string;
+  businessName?: string;
 }
 
 export interface CreateBookingDto {
@@ -17,6 +19,8 @@ export interface CreateBookingDto {
   customerId: number;
   businessId: number;
   serviceName: string;
+  customerName?: string;
+  businessName?: string;
 }
 
 export interface UpdateBookingDto {
@@ -26,6 +30,8 @@ export interface UpdateBookingDto {
   customerId?: number;
   businessId?: number;
   serviceName?: string;
+  customerName?: string;
+  businessName?: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";

@@ -8,6 +8,8 @@ export type Appointment = {
   customerId: number;
   businessId: number;
   serviceName: string;
+  customerName?: string;
+  businessName?: string;
 };
 
 //customers
