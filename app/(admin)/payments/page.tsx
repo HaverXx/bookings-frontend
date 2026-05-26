@@ -28,6 +28,21 @@ function Badge({ status }: { status: PaymentStatus }) {
   );
 }
 
+type PaymentMethodTranslationKey =
+  | "payments.method.cash"
+  | "payments.method.card"
+  | "payments.method.transfer";
+
+function getPaymentMethodLabel(method: string | undefined, t: (key: PaymentMethodTranslationKey) => string) {
+  const normalized = (method ?? "").trim().toLowerCase();
+
+  if (normalized === "efectivo" || normalized === "cash") return t("payments.method.cash");
+  if (normalized === "tarjeta" || normalized === "card") return t("payments.method.card");
+  if (normalized === "transferencia" || normalized === "bank transfer" || normalized === "transfer") return t("payments.method.transfer");
+
+  return method ?? "";
+}
+
 function RegisterPaymentModal({
   onClose,
   onCreated,
@@ -138,7 +153,7 @@ function RegisterPaymentModal({
 
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
-              Método de Pago
+              {t("payments.method.label")}
             </label>
             <select 
               className="input" 
@@ -146,9 +161,9 @@ function RegisterPaymentModal({
               value={form.paymentMethod}
               onChange={handleChange as any}
             >
-              <option value="Efectivo">Efectivo</option>
-              <option value="Tarjeta">Tarjeta</option>
-              <option value="Transferencia">Transferencia</option>
+              <option value="Efectivo">{t("payments.method.cash")}</option>
+              <option value="Tarjeta">{t("payments.method.card")}</option>
+              <option value="Transferencia">{t("payments.method.transfer")}</option>
             </select>
           </div>
 
@@ -243,6 +258,7 @@ export default function PaymentsPage() {
     if (!printWindow) return;
     
     const statusText = payment.status === "completed" ? t("status.paid") : t("status.pending");
+    const paymentMethodText = getPaymentMethodLabel(payment.paymentMethod, t);
 
     printWindow.document.write(`
       <html>
@@ -254,7 +270,7 @@ export default function PaymentsPage() {
             <p><strong>${t("receipt.id")}:</strong> ${payment.id}</p>
             <p><strong>${t("table.customer")}:</strong> ${payment.customerName || `Cliente #${payment.customerId}`}</p>
             <p><strong>${t("table.amount")}:</strong> ${payment.amount} ${t("receipt.currency")}</p>
-            <p><strong>${t("receipt.method")}:</strong> ${payment.paymentMethod}</p>
+            <p><strong>${t("receipt.method")}:</strong> ${paymentMethodText}</p>
             <p><strong>${t("table.date")}:</strong> ${payment.date}</p>
             <p><strong>${t("table.status")}:</strong> ${statusText}</p>
             <hr>
@@ -316,7 +332,7 @@ export default function PaymentsPage() {
                 <Badge status={p.status} />
               </div>
               <p className="customer-meta">{p.date}</p>
-              <div className="customer-tag">{p.amount} {t("receipt.currency")} · {p.paymentMethod}</div>
+              <div className="customer-tag">{p.amount} {t("receipt.currency")} · {getPaymentMethodLabel(p.paymentMethod, t)}</div>
               <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
                 <button className="secondary-btn btn-edit" style={{ flex: 1 }} onClick={() => handlePrint(p)}>{t("action.print")}</button>
                 <button className="danger-btn" style={{ flex: 1 }} onClick={() => setDeletingId(p.id)}>{t("bookings.delete.action")}</button>

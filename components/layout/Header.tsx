@@ -5,11 +5,35 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import { useLanguage } from "@/context/LanguageContext";
 import { useRouter } from "next/navigation";
 
+type CurrentUser = {
+  name?: string;
+  lastName?: string;
+  email?: string;
+};
+
+function computeInitials(user: CurrentUser | null): string {
+  const firstName = (user?.name ?? "").trim();
+  const lastName = (user?.lastName ?? "").trim();
+
+  const firstParts = firstName.split(/\s+/).filter(Boolean);
+  const lastParts = lastName.split(/\s+/).filter(Boolean);
+
+  const firstInitial = (firstParts[0]?.[0] ?? "").toUpperCase();
+  let secondInitial = (lastParts[0]?.[0] ?? "").toUpperCase();
+
+  if (!secondInitial) secondInitial = (firstParts[1]?.[0] ?? "").toUpperCase();
+  if (!secondInitial) secondInitial = (firstParts[0]?.[1] ?? "").toUpperCase();
+
+  const result = `${firstInitial}${secondInitial}`.trim();
+  return (result.length >= 2 ? result.slice(0, 2) : (result + "??").slice(0, 2));
+}
+
 export default function Header() {
   const { t } = useLanguage();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -42,6 +66,24 @@ const handleLogout = () => {
     };
   }, [isMenuOpen]);
 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("currentUser");
+      if (!raw) {
+        setCurrentUser(null);
+        return;
+      }
+      setCurrentUser(JSON.parse(raw));
+    } catch {
+      setCurrentUser(null);
+    }
+  }, []);
+
+  const avatarText = computeInitials(currentUser);
+  const avatarTitle = currentUser?.name
+    ? `${currentUser.name}${currentUser.lastName ? ` ${currentUser.lastName}` : ""}`
+    : t("header.profile_menu");
+
   return (
     <header className="admin-header">
       <div>
@@ -59,9 +101,9 @@ const handleLogout = () => {
             className="admin-avatar" 
             onClick={toggleMenu}
             style={{ cursor: 'pointer' }}
-            title={t("header.profile_menu")}
+            title={avatarTitle}
           >
-            AD
+            {avatarText}
           </div>
 
           {isMenuOpen && (

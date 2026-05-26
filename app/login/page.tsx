@@ -6,6 +6,21 @@ import Link from "next/link";
 
 const API = "http://localhost:3000";
 
+function capitalizeWord(value: string) {
+  const v = value.trim();
+  if (!v) return "";
+  return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
+}
+
+function deriveMockNameFromEmail(email: string) {
+  const local = (email.split("@")[0] ?? "").trim();
+  const parts = local.split(/[._\-\s]+/).filter(Boolean);
+
+  const name = capitalizeWord(parts[0] ?? "Admin");
+  const lastName = capitalizeWord(parts[1] ?? "User");
+  return { name, lastName };
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,7 +58,8 @@ export default function LoginPage() {
     } catch {
       if (email.endsWith("@admin.com") && password.length >= 8) {
         // Guardar sesión mock consistente con el backend
-        const mockUser = { email, name: "Admin", role: "admin" };
+        const derived = deriveMockNameFromEmail(email);
+        const mockUser = { email, ...derived, role: "admin" };
         localStorage.setItem("currentUser", JSON.stringify(mockUser));
         router.push("/dashboard");
       } else {
