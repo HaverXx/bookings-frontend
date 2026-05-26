@@ -68,7 +68,7 @@ export default function ProfilePage() {
           </div>
           <div className="detail-item">
             <label>{t("profile.birth_date")}</label>
-            <p>{new Date(user.birthDate).toLocaleDateString()}</p>
+            <p>{Date.parse(user.birthDate) && user.birthDate.includes("-") && user.birthDate.length === 10 ? new Date(user.birthDate).toLocaleDateString() : user.birthDate}</p>
           </div>
           <div className="detail-item">
             <label>{t("profile.user_role")}</label>
