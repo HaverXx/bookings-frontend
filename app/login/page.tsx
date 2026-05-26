@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,6 +33,7 @@ export default function LoginPage() {
 
       if (!res.ok) {
         setError("Credenciales inválidas. El correo debe ser @admin.com y la contraseña de mín. 8 caracteres.");
+        setLoading(false);
         return;
       }
 
@@ -39,15 +41,16 @@ export default function LoginPage() {
       localStorage.setItem("currentUser", JSON.stringify(user));
       router.push("/dashboard");
     } catch {
-  if (email.endsWith("@admin.com") && password.length >= 8) {
-    // Guardar sesión mock consistente con el backend
-    const mockUser = { email, name: "Admin", role: "admin" };
-    localStorage.setItem("currentUser", JSON.stringify(mockUser));
-    router.push("/dashboard");
-  } else {
-    setError("No se pudo conectar con el servidor.");
-  }
-}
+      if (email.endsWith("@admin.com") && password.length >= 8) {
+        // Guardar sesión mock consistente con el backend
+        const mockUser = { email, name: "Admin", role: "admin" };
+        localStorage.setItem("currentUser", JSON.stringify(mockUser));
+        router.push("/dashboard");
+      } else {
+        setError("No se pudo conectar con el servidor.");
+        setLoading(false);
+      }
+    }
   };
 
   return (
@@ -76,12 +79,23 @@ export default function LoginPage() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Contraseña</label>
+            <div className="form-label-row">
+              <label htmlFor="password">Contraseña</label>
+              <button
+                type="button"
+                className="password-toggle-text-btn"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}></i>
+                <span>{showPassword ? "Ocultar" : "Mostrar"}</span>
+              </button>
+            </div>
             <div className="input-wrapper">
               <i className="bi bi-lock"></i>
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 className="input"
                 placeholder="••••••••"
                 value={password}
@@ -116,6 +130,30 @@ export default function LoginPage() {
         .input-wrapper { position: relative; display: flex; align-items: center; }
         .input-wrapper i { position: absolute; left: 14px; color: var(--muted); font-size: 18px; }
         .input-wrapper .input { padding-left: 44px; }
+        .form-label-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .password-toggle-text-btn {
+          background: none;
+          border: none;
+          color: var(--muted);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          padding: 0;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          transition: color 0.2s ease, transform 0.1s ease;
+        }
+        .password-toggle-text-btn:hover {
+          color: var(--text);
+        }
+        .password-toggle-text-btn:active {
+          transform: scale(0.96);
+        }
         .auth-submit { width: 100%; padding: 14px; font-size: 16px; margin-top: 8px; }
         .auth-submit:disabled { opacity: 0.6; cursor: not-allowed; }
         .auth-footer { text-align: center; margin-top: 24px; font-size: 14px; color: var(--muted); }

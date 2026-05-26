@@ -191,7 +191,7 @@ export async function deleteBusiness(id: number): Promise<{ message: string }> {
     method: 'DELETE',
   });
   if (!res.ok) throw new Error('Error al eliminar el negocio');
-  return res.json();
+  return { message: 'Negocio eliminado correctamente' };
 }
 
 //payments
