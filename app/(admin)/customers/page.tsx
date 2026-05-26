@@ -266,36 +266,86 @@ function EditCustomerModal({
   );
 }
 
-function CustomerCard({
+function DeleteCustomerModal({
   customer,
-  onEdit,
+  onClose,
   onDeleted,
 }: {
   customer: Customer;
-  onEdit: (c: Customer) => void;
+  onClose: () => void;
   onDeleted: (id: number) => void;
 }) {
   const { t } = useLanguage();
-  const [deleting, setDeleting] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isJose = customer.name.toLowerCase() === "jose";
 
   async function handleDelete() {
-    if (customer.name.toLowerCase() === "jose") {
-      alert("No está permitido eliminar al cliente Jose.");
-      return;
-    }
-
-    if (!confirm(t("customers.delete.text"))) return;
-
-    setDeleting(true);
+    if (isJose) return;
+    setLoading(true);
+    setError(null);
     try {
       await deleteCustomer(customer.id);
       onDeleted(customer.id);
+      onClose();
     } catch {
-      alert(t("customers.delete.error"));
+      setError(t("customers.delete.error"));
     } finally {
-      setDeleting(false);
+      setLoading(false);
     }
   }
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+        {isJose ? (
+          <>
+            <div className="modal-icon" style={{ background: "#fef3c7", color: "#d97706" }}>!</div>
+            <h3 className="modal-title">{t("customers.delete.title")}</h3>
+            <p className="modal-text">{t("customers.delete.jose_warning")}</p>
+            <div className="modal-actions">
+              <button className="secondary-btn" onClick={onClose}>
+                {t("customers.form.cancel")}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="modal-icon">!</div>
+            <h3 className="modal-title">{t("customers.delete.title")}</h3>
+            <p className="modal-text">{t("customers.delete.text")}</p>
+            <p className="modal-text" style={{ fontSize: 13, color: "var(--muted)", marginTop: -14 }}>
+              {t("customers.delete.confirm")}
+            </p>
+
+            {error && <p className="message-error" style={{ marginBottom: 16 }}>{error}</p>}
+
+            <div className="modal-actions">
+              <button className="secondary-btn" onClick={onClose} disabled={loading}>
+                {t("customers.form.cancel")}
+              </button>
+              <button className="danger-btn" onClick={handleDelete} disabled={loading}>
+                {loading ? t("customers.delete.deleting") : t("customers.delete.action")}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CustomerCard({
+  customer,
+  onEdit,
+  onDeleteRequest,
+}: {
+  customer: Customer;
+  onEdit: (c: Customer) => void;
+  onDeleteRequest: (c: Customer) => void;
+}) {
+  const { t } = useLanguage();
 
   return (
     <div className="customer-card">
@@ -317,10 +367,9 @@ function CustomerCard({
         <button
           className="danger-btn"
           style={{ flex: 1 }}
-          onClick={handleDelete}
-          disabled={deleting}
+          onClick={() => onDeleteRequest(customer)}
         >
-          {deleting ? t("customers.delete.deleting") : t("customers.delete.action")}
+          {t("customers.delete.action")}
         </button>
       </div>
     </div>
@@ -333,6 +382,7 @@ export default function CustomersPage() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -365,6 +415,13 @@ export default function CustomersPage() {
           onUpdated={(c) => {
             setCustomers((prev) => prev.map((x) => (x.id === c.id ? c : x)));
           }}
+        />
+      )}
+      {deletingCustomer && (
+        <DeleteCustomerModal
+          customer={deletingCustomer}
+          onClose={() => setDeletingCustomer(null)}
+          onDeleted={(id) => setCustomers((prev) => prev.filter((c) => c.id !== id))}
         />
       )}
 
@@ -404,7 +461,7 @@ export default function CustomersPage() {
                 key={customer.id}
                 customer={customer}
                 onEdit={setEditingCustomer}
-                onDeleted={(id) => setCustomers((prev) => prev.filter((c) => c.id !== id))}
+                onDeleteRequest={setDeletingCustomer}
               />
             ))}
           </section>

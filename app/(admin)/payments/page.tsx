@@ -166,11 +166,64 @@ function RegisterPaymentModal({
   );
 }
 
+function DeletePaymentModal({
+  paymentId,
+  onClose,
+  onDeleted,
+}: {
+  paymentId: number;
+  onClose: () => void;
+  onDeleted: (id: number) => void;
+}) {
+  const { t } = useLanguage();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleDelete() {
+    setLoading(true);
+    setError(null);
+    try {
+      await deletePayment(paymentId);
+      onDeleted(paymentId);
+      onClose();
+    } catch {
+      setError(t("payments.delete.error"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-icon">!</div>
+        <h3 className="modal-title">{t("payments.delete.title")}</h3>
+        <p className="modal-text">{t("payments.delete.text")}</p>
+        <p className="modal-text" style={{ fontSize: 13, color: "var(--muted)", marginTop: -14 }}>
+          {t("payments.delete.confirm")} (ID: #{paymentId})
+        </p>
+
+        {error && <p className="message-error" style={{ marginBottom: 16 }}>{error}</p>}
+
+        <div className="modal-actions">
+          <button className="secondary-btn" onClick={onClose} disabled={loading}>
+            {t("customers.form.cancel")}
+          </button>
+          <button className="danger-btn" onClick={handleDelete} disabled={loading}>
+            {loading ? t("payments.delete.deleting") : t("payments.delete.action")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PaymentsPage() {
   const { t } = useLanguage();
 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   async function loadPayments() {
     try {
@@ -184,18 +237,6 @@ export default function PaymentsPage() {
   useEffect(() => {
     void loadPayments();
   }, []);
-
-  const handleDelete = async (id: number) => {
-    if (!confirm(t('bookings.delete.text') + id + "?")) return;
-
-    try {
-      await deletePayment(id);
-      setPayments((prev) => prev.filter((p) => p.id !== id));
-    } catch (error) {
-      console.error("Error eliminando cobro", error);
-      alert(t("bookings.form.error.delete"));
-    }
-  }
 
   const handlePrint = (payment: Payment) => {
     const printWindow = window.open('', '_blank');
@@ -229,6 +270,15 @@ export default function PaymentsPage() {
   return (
     <>
       {showModal && <RegisterPaymentModal onClose={() => setShowModal(false)} onCreated={loadPayments} />}
+      {deletingId !== null && (
+        <DeletePaymentModal
+          paymentId={deletingId}
+          onClose={() => setDeletingId(null)}
+          onDeleted={(id) => {
+            setPayments((prev) => prev.filter((p) => p.id !== id));
+          }}
+        />
+      )}
 
       <div className="page-stack">
         <style jsx global>{`
@@ -269,7 +319,7 @@ export default function PaymentsPage() {
               <div className="customer-tag">{p.amount} {t("receipt.currency")} · {p.paymentMethod}</div>
               <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
                 <button className="secondary-btn btn-edit" style={{ flex: 1 }} onClick={() => handlePrint(p)}>{t("action.print")}</button>
-                <button className="danger-btn" style={{ flex: 1 }} onClick={() => handleDelete(p.id)}>{t("bookings.delete.action")}</button>
+                <button className="danger-btn" style={{ flex: 1 }} onClick={() => setDeletingId(p.id)}>{t("bookings.delete.action")}</button>
               </div>
             </div>
           ))}
