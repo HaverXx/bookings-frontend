@@ -59,7 +59,7 @@ const translations = {
     "payments.delete.error": "Error al eliminar el cobro.",
 
     "customers.title": "Directorio de Clientes",
-    "customers.subtitle": "Gestión visual de clientes y próximas reservas.",
+    "customers.subtitle": "Gestión visual de clientes.",
     "customers.new": "Nuevo cliente",
     "customers.search": "Buscar cliente...",
     "customers.loading": "Cargando clientes...",
@@ -273,7 +273,7 @@ const translations = {
     "payments.delete.error": "Error deleting payment.",
 
     "customers.title": "Customer Directory",
-    "customers.subtitle": "Visual management of customers and upcoming bookings.",
+    "customers.subtitle": "Visual management of customers.",
     "customers.new": "New customer",
     "customers.search": "Search customer...",
     "customers.loading": "Loading customers...",
