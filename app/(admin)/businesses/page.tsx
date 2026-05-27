@@ -266,11 +266,29 @@ export default function BusinessesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const loadBusinesses = async () => {
+    try {
+      const data = await getBusinesses();
+      setBusinesses(data);
+      setError(null);
+    } catch {
+      setError(t("businesses.error.load"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    getBusinesses()
-      .then(setBusinesses)
-      .catch(() => setError(t("businesses.error.load")))
-      .finally(() => setLoading(false));
+    void loadBusinesses();
+  }, [t]);
+
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      void loadBusinesses();
+    };
+
+    window.addEventListener("focus", handleWindowFocus);
+    return () => window.removeEventListener("focus", handleWindowFocus);
   }, [t]);
 
   const filtered = businesses.filter((b) =>

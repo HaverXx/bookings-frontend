@@ -1,21 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { isAdminUser, parseCurrentUser } from "@/lib/currentUser";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [authorized, setAuthorized] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    const user = localStorage.getItem("currentUser");
-    if (!user) {
+    const parsedUser = parseCurrentUser(localStorage.getItem("currentUser"));
+    if (!parsedUser) {
       // Redirige y reemplaza TODO el historial
       window.location.replace("/login");
-    } else {
-      setAuthorized(true);
+      return;
     }
-  }, []);
+
+    if (pathname === "/businesses" && !isAdminUser(parsedUser)) {
+      window.location.replace("/dashboard");
+      return;
+    }
+
+    setAuthorized(true);
+  }, [pathname, router]);
 
   if (!authorized) {
     return (

@@ -12,6 +12,23 @@ const PLANS = [
   { id: "anual", name: "Plan Anual", monthlyEquivalent: "9,99€/mes", finalPrice: "119,88€", billingText: "Cobro cada 12 meses", popular: true }
 ];
 
+const EMAIL_RESTRICTED_TOKEN = "@admin";
+const BUSINESS_RESTRICTED_TOKEN = "admin";
+const EMAIL_RESTRICTED_MESSAGE = "No se permite usar '@admin' en el correo electrónico.";
+const BUSINESS_RESTRICTED_MESSAGE = "No se permite usar 'admin' en el nombre del negocio.";
+
+function getRestrictedInputError(email: string, businessName: string): string {
+  if (email.toLowerCase().includes(EMAIL_RESTRICTED_TOKEN)) {
+    return EMAIL_RESTRICTED_MESSAGE;
+  }
+
+  if (businessName.toLowerCase().includes(BUSINESS_RESTRICTED_TOKEN)) {
+    return BUSINESS_RESTRICTED_MESSAGE;
+  }
+
+  return "";
+}
+
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: "",
@@ -36,7 +53,18 @@ export default function RegisterPage() {
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
+    const { id, value } = e.target;
+    const nextFormData = { ...formData, [id]: value };
+
+    setFormData(nextFormData);
+
+    const restrictedError = getRestrictedInputError(nextFormData.email, nextFormData.businessName);
+    if (restrictedError) {
+      setError(restrictedError);
+      return;
+    }
+
+    setError((prev) => (prev === EMAIL_RESTRICTED_MESSAGE || prev === BUSINESS_RESTRICTED_MESSAGE ? "" : prev));
   };
 
   const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,7 +94,8 @@ export default function RegisterPage() {
     cardData.cardNumber.trim() !== "" &&
     cardData.cardHolder.trim() !== "" &&
     cardData.cardExpiry.trim() !== "" &&
-    cardData.cardCvv.trim() !== "";
+    cardData.cardCvv.trim() !== "" &&
+    getRestrictedInputError(formData.email, formData.businessName) === "";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,8 +106,9 @@ export default function RegisterPage() {
       return;
     }
 
-    if (formData.email.toLowerCase().includes("@admin.com")) {
-      setError("No se permiten correos de dominio @admin.com");
+    const restrictedError = getRestrictedInputError(formData.email, formData.businessName);
+    if (restrictedError) {
+      setError(restrictedError);
       return;
     }
 
@@ -156,7 +186,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="email">Correo Electrónico (No se permite @admin.com)</label>
+              <label htmlFor="email">Correo Electrónico (No se permite @admin)</label>
               <div className="input-wrapper">
                 <i className="bi bi-envelope"></i>
                 <input id="email" type="email" className="input" placeholder="usuario@correo.com" value={formData.email} onChange={handleChange} required />
