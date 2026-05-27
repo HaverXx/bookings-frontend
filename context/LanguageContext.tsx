@@ -161,6 +161,10 @@ const translations = {
     "profile.user_role": "Rol de Usuario",
     "profile.administrator": "Administrador",
     "profile.booking_administrator": "Administrador de Reservas",
+    "profile.role_admin": "Administrador del sistema",
+    "profile.role_business": "Empresa",
+    "profile.role_admin_detail": "Administrador del sistema",
+    "profile.role_business_detail": "Empresa",
 
     "dashboard.compared_to_yesterday": "respecto a ayer",
     "dashboard.payment_recorded": "pago registrado",
@@ -380,6 +384,10 @@ const translations = {
     "profile.user_role": "User Role",
     "profile.administrator": "Administrator",
     "profile.booking_administrator": "Booking Administrator",
+    "profile.role_admin": "System Administrator",
+    "profile.role_business": "Business",
+    "profile.role_admin_detail": "System Administrator",
+    "profile.role_business_detail": "Business",
 
     "dashboard.compared_to_yesterday": "compared to yesterday",
     "dashboard.payment_recorded": "payment recorded",

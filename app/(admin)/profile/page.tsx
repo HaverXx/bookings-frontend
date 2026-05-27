@@ -40,6 +40,10 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
+  const isAdmin = user.email?.toLowerCase().endsWith("@admin.com");
+  const roleBadge = isAdmin ? t("profile.role_admin") : t("profile.role_business");
+  const roleDetail = isAdmin ? t("profile.role_admin_detail") : t("profile.role_business_detail");
+
   return (
     <div className="page-stack">
       <div className="page-hero">
@@ -56,7 +60,7 @@ export default function ProfilePage() {
           </div>
           <div className="profile-main-info">
             <h3>{user.name} {user.lastName}</h3>
-            <span className="badge badge--confirmed">{t("profile.administrator")}</span>
+            <span className={`badge ${isAdmin ? 'badge--confirmed' : 'badge--paid'}`}>{roleBadge}</span>
           </div>
         </div>
 
@@ -75,7 +79,7 @@ export default function ProfilePage() {
           </div>
           <div className="detail-item">
             <label>{t("profile.user_role")}</label>
-            <p>{t("profile.booking_administrator")}</p>
+            <p>{roleDetail}</p>
           </div>
         </div>
 
