@@ -7,7 +7,7 @@ import { useLanguage } from "@/context/LanguageContext";
 interface UserProfile {
   name: string;
   lastName: string;
-  birthDate: string;
+  business?: string;
   email: string;
 }
 
@@ -25,7 +25,7 @@ export default function ProfilePage() {
       setUser({
         name: "Administrador",
         lastName: "Sistema",
-        birthDate: "1990-01-01",
+        business: "",
         email: "admin@admin.com",
       });
     }
@@ -75,7 +75,7 @@ export default function ProfilePage() {
           </div>
           <div className="detail-item">
             <label>{t("profile.birth_date")}</label>
-            <p>{Date.parse(user.birthDate) && user.birthDate.includes("-") && user.birthDate.length === 10 ? new Date(user.birthDate).toLocaleDateString() : user.birthDate}</p>
+            <p>{user.business || "—"}</p>
           </div>
           <div className="detail-item">
             <label>{t("profile.user_role")}</label>
