@@ -40,7 +40,9 @@ export default function Header() {
   
 const handleLogout = () => {
   setIsMenuOpen(false);
-  localStorage.removeItem("currentUser");
+  // Limpia TODOS los datos de sesión/caché para evitar acceso no autorizado
+  localStorage.clear();
+  sessionStorage.clear();
   // Reemplaza todo el historial para que el botón atrás no funcione
   window.location.replace("/login");
 };
@@ -180,6 +182,16 @@ const handleLogout = () => {
         }
         .dropdown-item.logout i {
           color: #dc2626;
+        }
+        .dropdown-item.logout:hover {
+          background: rgba(220, 38, 38, 0.1);
+          color: #dc2626;
+          box-shadow: none;
+        }
+        [data-theme='dark'] .dropdown-item.logout:hover {
+          background: rgba(220, 38, 38, 0.15);
+          color: #ef4444;
+          box-shadow: 0 0 10px rgba(220, 38, 38, 0.15);
         }
         .dropdown-divider {
           height: 1px;

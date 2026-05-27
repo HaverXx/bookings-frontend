@@ -32,7 +32,10 @@ export default function ProfilePage() {
   }, []);
 
   const handleLogout = () => {
-    router.push("/login");
+    // Limpia TODOS los datos de sesión/caché para evitar acceso no autorizado
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.replace("/login");
   };
 
   if (!user) return null;
