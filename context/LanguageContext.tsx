@@ -53,6 +53,7 @@ const translations = {
     "payments.list": "Listado de Cobros Registrados",
     "payments.prompt.amount": "Introduce el importe del cobro:",
     "payments.prompt.customer": "Introduce el nombre del cliente:",
+    "payments.select_customer": "Selecciona un cliente",
     "payments.alert.success": "Cobro registrado con éxito.",
     "payments.default_business": "Comercio General",
     "payments.delete.title": "Eliminar cobro",
@@ -271,6 +272,7 @@ const translations = {
     "payments.list": "List of Registered Payments",
     "payments.prompt.amount": "Enter the collection amount:",
     "payments.prompt.customer": "Enter the customer's name:",
+    "payments.select_customer": "Select a customer",
     "payments.alert.success": "Payment registered successfully.",
     "payments.default_business": "General Commerce",
     "payments.delete.title": "Delete payment",
@@ -469,7 +471,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const t = (key: keyof typeof translations.es) => {
-    return translations[lang][key] || key;
+    const langMap = translations[lang] as Record<string, string>;
+    return langMap[key] ?? key;
   };
 
   return (

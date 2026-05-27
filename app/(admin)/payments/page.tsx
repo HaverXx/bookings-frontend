@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import { createPayment, deletePayment, getPayments } from "@/lib/api";
+import { createPayment, deletePayment, getPayments, getCustomers } from "@/lib/api";
+import type { Customer } from "@/lib/types";
 import type { Payment, PaymentStatus } from "@/lib/types";
 
 // Componentes de apoyo
@@ -58,6 +59,18 @@ function RegisterPaymentModal({
     date: new Date().toISOString().split('T')[0],
     paymentMethod: "Efectivo",
   });
+  const [customers, setCustomers] = useState<Customer[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getCustomers();
+        setCustomers(data);
+      } catch (e) {
+        console.error('Failed to load customers', e);
+      }
+    })();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -110,15 +123,19 @@ function RegisterPaymentModal({
             <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
               {t("table.customer")}
             </label>
-            <input
+            <select
               className="input"
               name="customerName"
               value={form.customerName}
               onChange={handleChange}
-              placeholder="Ej. Juan Pérez"
               required
               autoFocus
-            />
+            >
+              <option value="">{t("payments.select_customer")}</option>
+              {customers.map((c) => (
+                <option key={c.id} value={c.name}>{c.name} {c.email && `(${c.email})`}</option>
+              ))}
+            </select>
           </div>
 
           <div>
