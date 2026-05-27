@@ -16,7 +16,7 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: "",
     lastName: "",
-    birthDate: "", // Storing Business Name here for database compatibility
+    businessName: "",
     email: "",
     password: "",
   });
@@ -59,7 +59,7 @@ export default function RegisterPage() {
   const isFormValid =
     formData.name.trim() !== "" &&
     formData.lastName.trim() !== "" &&
-    formData.birthDate.trim() !== "" &&
+    formData.businessName.trim() !== "" &&
     formData.email.trim() !== "" &&
     formData.password.trim() !== "" &&
     selectedPlan !== "" &&
@@ -95,14 +95,9 @@ export default function RegisterPage() {
         body: JSON.stringify({
           name: formData.name,
           lastName: formData.lastName,
-          birthDate: formData.birthDate, // Sent as Business Name
+          business: formData.businessName,
           email: formData.email,
           password: formData.password,
-          plan: selectedPlan,
-          card: {
-            holder: cardData.cardHolder,
-            numberEnds: cardData.cardNumber.slice(-4)
-          }
         }),
       });
 
@@ -153,10 +148,10 @@ export default function RegisterPage() {
 
             {/* 2. Nombre del Negocio */}
             <div className="form-group">
-              <label htmlFor="birthDate">Nombre del Negocio</label>
+              <label htmlFor="businessName">Nombre del Negocio</label>
               <div className="input-wrapper">
                 <i className="bi bi-shop"></i>
-                <input id="birthDate" type="text" className="input" placeholder="Ej. Peluquería Nova" value={formData.birthDate} onChange={handleChange} required />
+                <input id="businessName" type="text" className="input" placeholder="Ej. Peluquería Nova" value={formData.businessName} onChange={handleChange} required />
               </div>
             </div>
 
