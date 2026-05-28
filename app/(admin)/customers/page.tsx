@@ -48,7 +48,7 @@ function NewCustomerModal({
   }
 
   async function handleSubmit() {
-    if (!form.name || !form.phone || !form.email || !form.businessId) {
+    if (!form.name || !form.businessId) {
       setError(t("customers.form.error.required"));
       return;
     }
@@ -188,7 +188,7 @@ function EditCustomerModal({
   }
 
   async function handleSubmit() {
-    if (!form.name || !form.phone || !form.email || !form.businessId) {
+    if (!form.name || !form.businessId) {
       setError(t("customers.form.error.required"));
       return;
     }
