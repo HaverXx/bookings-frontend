@@ -47,7 +47,7 @@ export default function LoginPage() {
       });
 
       if (!res.ok) {
-        setError("Credenciales inválidas. El correo debe ser @admin.com y la contraseña de mín. 8 caracteres.");
+        setError("Credenciales inválidas. El correo debe tener un formato válido y la contraseña de mín. 8 caracteres.");
         setLoading(false);
         return;
       }
