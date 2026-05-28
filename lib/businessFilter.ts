@@ -1,6 +1,6 @@
 import { getCurrentUser, isAdminUser } from './currentUser';
 import type { Booking } from './api';
-import type { Customer, Payment } from './types';
+import type { Customer, Payment, Business } from './types';
 
 /**
  * Obtiene el negocio del usuario actual
@@ -96,4 +96,18 @@ export function filterPaymentsByBusinessWithCustomers(
     .map((cust) => cust.id);
   
   return payments.filter((payment) => allowedCustomerIds.includes(payment.customerId));
+}
+
+/**
+ * Filtra negocios para mostrar solo el negocio del usuario actual
+ */
+export function filterBusinessesForUser(businesses: Business[]): Business[] {
+  if (isCurrentUserAdmin()) {
+    return businesses;
+  }
+  
+  const userBusiness = getUserBusinessFilter();
+  if (!userBusiness) return [];
+  
+  return businesses.filter((biz) => businessMatch(userBusiness, biz.name));
 }

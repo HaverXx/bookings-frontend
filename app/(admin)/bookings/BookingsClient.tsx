@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Booking, BookingStatus, CreateBookingDto, UpdateBookingDto } from "@/lib/api";
 import { createAppointment, deleteAppointment, getBusinesses, getCustomers, updateAppointment } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
-import { filterAppointmentsByBusiness, filterCustomersByBusiness } from "@/lib/businessFilter";
+import { filterAppointmentsByBusiness, filterCustomersByBusiness, filterBusinessesForUser } from "@/lib/businessFilter";
 import type { Business, Customer } from "@/lib/types";
 
 type BookingFormState = {
@@ -406,8 +406,9 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
       try {
         const [customerList, businessList] = await Promise.all([getCustomers(), getBusinesses()]);
         const filteredCustomers = filterCustomersByBusiness(customerList);
+        const filteredBusinesses = filterBusinessesForUser(businessList);
         setCustomers(filteredCustomers);
-        setBusinesses(businessList);
+        setBusinesses(filteredBusinesses);
       } catch (error) {
         console.error("Error cargando catálogos para reservas", error);
       }

@@ -5,7 +5,7 @@ import { createCustomer, deleteCustomer, getCustomers, updateCustomer, getBusine
 import type { Customer, Business } from "@/lib/types";
 import type { CreateCustomerDto, UpdateCustomerDto } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
-import { filterCustomersByBusiness } from "@/lib/businessFilter";
+import { filterCustomersByBusiness, filterBusinessesForUser } from "@/lib/businessFilter";
 
 const EMPTY_FORM: CreateCustomerDto = {
   name: "",
@@ -30,9 +30,10 @@ function NewCustomerModal({
   useEffect(() => {
     getBusinesses()
       .then((data) => {
-        setBusinesses(data);
-        if (data.length > 0) {
-          setForm((prev) => ({ ...prev, businessId: data[0].businessID }));
+        const filteredBusinesses = filterBusinessesForUser(data);
+        setBusinesses(filteredBusinesses);
+        if (filteredBusinesses.length > 0) {
+          setForm((prev) => ({ ...prev, businessId: filteredBusinesses[0].businessID }));
         }
       })
       .catch(() => setError("Error al cargar los negocios."));
@@ -169,9 +170,10 @@ function EditCustomerModal({
   useEffect(() => {
     getBusinesses()
       .then((data) => {
-        setBusinesses(data);
-        if (!form.businessId && data.length > 0) {
-          setForm((prev) => ({ ...prev, businessId: data[0].businessID }));
+        const filteredBusinesses = filterBusinessesForUser(data);
+        setBusinesses(filteredBusinesses);
+        if (!form.businessId && filteredBusinesses.length > 0) {
+          setForm((prev) => ({ ...prev, businessId: filteredBusinesses[0].businessID }));
         }
       })
       .catch(() => setError("Error al cargar los negocios."));
