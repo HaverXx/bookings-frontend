@@ -4,6 +4,7 @@ export type CurrentUser = {
   lastName?: string;
   email?: string;
   business?: string;
+  businessId?: number;
   role?: string;
 };
 

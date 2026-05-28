@@ -34,7 +34,31 @@ export interface UpdateBookingDto {
   businessName?: string;
 }
 
+import { getCurrentUser, isAdminUser } from './currentUser';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+function getPaymentsScopeHeaders(): HeadersInit {
+  if (typeof window === 'undefined') {
+    return {};
+  }
+
+  const user = getCurrentUser();
+  if (!user) {
+    return {};
+  }
+
+  const isAdmin = isAdminUser(user);
+  const headers: Record<string, string> = {
+    'x-user-role': isAdmin ? 'admin' : (user.role ?? 'user'),
+  };
+
+  if (!isAdmin && typeof user.businessId === 'number') {
+    headers['x-business-id'] = String(user.businessId);
+  }
+
+  return headers;
+}
 
 export async function getAppointments(): Promise<Booking[]> {
   const res = await fetch(`${API_URL}/appointments`, {
@@ -203,13 +227,17 @@ export interface CreatePaymentDto {
   paymentMethod: string;
   appointmentId?: number;
   customerId?: number;
+  businessId: number;
   status: PaymentStatus;
   notes?: string;
   customerName?: string;
 }
 
 export async function getPayments(): Promise<Payment[]> {
-  const res = await fetch(`${API_URL}/payments`, { cache: 'no-store' });
+  const res = await fetch(`${API_URL}/payments`, {
+    cache: 'no-store',
+    headers: getPaymentsScopeHeaders(),
+  });
   if (!res.ok) throw new Error('Error al obtener los pagos');
   return res.json();
 }
@@ -217,7 +245,7 @@ export async function getPayments(): Promise<Payment[]> {
 export async function createPayment(data: CreatePaymentDto): Promise<Payment> {
   const res = await fetch(`${API_URL}/payments`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...getPaymentsScopeHeaders() },
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error('Error al registrar el pago');
@@ -227,6 +255,7 @@ export async function createPayment(data: CreatePaymentDto): Promise<Payment> {
 export async function deletePayment(id: number): Promise<{ message: string }> {
   const res = await fetch(`${API_URL}/payments/${id}`, {
     method: 'DELETE',
+    headers: getPaymentsScopeHeaders(),
   });
   if (!res.ok) throw new Error('Error al eliminar el pago');
   return res.json();

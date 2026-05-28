@@ -39,6 +39,7 @@ export type Payment = {
   paymentMethod: string;
   appointmentId: number;
   customerId: number;
+  businessId?: number;
   status: PaymentStatus;
   notes?: string;
   customerName?: string;

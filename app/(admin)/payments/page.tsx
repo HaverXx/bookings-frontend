@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import { createPayment, deletePayment, getPayments, getCustomers } from "@/lib/api";
-import type { Customer } from "@/lib/types";
+import { createPayment, deletePayment, getPayments, getCustomers, getBusinesses } from "@/lib/api";
+import type { Customer, Business } from "@/lib/types";
 import type { Payment, PaymentStatus } from "@/lib/types";
-import { filterCustomersByBusiness, filterPaymentsByBusinessWithCustomers } from "@/lib/businessFilter";
+import { filterBusinessesForUser, filterCustomersByBusiness, filterPaymentsByBusinessWithCustomers } from "@/lib/businessFilter";
 
 // Componentes de apoyo
 function KpiCard({ title, value, subtitle, variant }: any) {
@@ -56,27 +56,59 @@ function RegisterPaymentModal({
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     amount: "",
-    customerName: "",
+    customerId: "",
+    businessId: "",
     date: new Date().toISOString().split('T')[0],
     paymentMethod: "Efectivo",
   });
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+
+  function getCustomerBusinessId(customer: Customer, allBusinesses: Business[]): number | undefined {
+    if (typeof customer.businessId === "number") return customer.businessId;
+
+    const customerBusiness = (customer.business ?? "").trim().toLowerCase();
+    const business = allBusinesses.find((b) => b.name.trim().toLowerCase() === customerBusiness);
+    return business?.businessID;
+  }
 
   useEffect(() => {
     (async () => {
       try {
-        const data = await getCustomers();
-        const filtered = filterCustomersByBusiness(data);
-        setCustomers(filtered);
+        const [businessData, customerData] = await Promise.all([getBusinesses(), getCustomers()]);
+        const visibleBusinesses = filterBusinessesForUser(businessData);
+        const visibleCustomers = filterCustomersByBusiness(customerData);
+
+        setBusinesses(visibleBusinesses);
+        setCustomers(visibleCustomers);
+
+        if (visibleBusinesses.length > 0) {
+          const defaultBusinessId = String(visibleBusinesses[0].businessID);
+          setForm((prev) => ({ ...prev, businessId: defaultBusinessId }));
+        }
       } catch (e) {
-        console.error('Failed to load customers', e);
+        console.error('Failed to load payment data', e);
       }
     })();
   }, []);
 
+  const filteredCustomers = customers.filter((customer) => {
+    if (!form.businessId) return false;
+    const customerBusinessId = getCustomerBusinessId(customer, businesses);
+    return customerBusinessId === Number(form.businessId);
+  });
+
+  const selectedCustomer = filteredCustomers.find((c) => String(c.id) === form.customerId);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => {
+      if (name === "businessId") {
+        return { ...prev, businessId: value, customerId: "" };
+      }
+
+      return { ...prev, [name]: value };
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -87,7 +119,12 @@ function RegisterPaymentModal({
       return;
     }
 
-    if (!form.customerName.trim()) {
+    if (!form.businessId) {
+      alert("Selecciona un negocio.");
+      return;
+    }
+
+    if (!form.customerId.trim() || !selectedCustomer) {
       alert(t("payments.alert.enter_customer"));
       return;
     }
@@ -99,8 +136,10 @@ function RegisterPaymentModal({
         amount: Number(form.amount),
         date: form.date,
         paymentMethod: form.paymentMethod,
+        businessId: Number(form.businessId),
         status: "completed",
-        customerName: form.customerName.trim(),
+        customerId: selectedCustomer.id,
+        customerName: selectedCustomer.name,
         notes: "Cobro directo registrado desde el panel de pagos"
       });
 
@@ -123,19 +162,37 @@ function RegisterPaymentModal({
         <form onSubmit={handleSubmit} className="form-grid">
           <div style={{ gridColumn: "1 / -1" }}>
             <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
-              {t("table.customer")}
+              Negocio
             </label>
             <select
               className="input"
-              name="customerName"
-              value={form.customerName}
+              name="businessId"
+              value={form.businessId}
               onChange={handleChange}
               required
               autoFocus
             >
+              <option value="">Selecciona un negocio</option>
+              {businesses.map((business) => (
+                <option key={business.businessID} value={business.businessID}>{business.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={{ fontSize: 13, color: "var(--muted)", display: "block", marginBottom: 6 }}>
+              {t("table.customer")}
+            </label>
+            <select
+              className="input"
+              name="customerId"
+              value={form.customerId}
+              onChange={handleChange}
+              required
+            >
               <option value="">{t("payments.select_customer")}</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.name}>{c.name} {c.email && `(${c.email})`}</option>
+              {filteredCustomers.map((c) => (
+                <option key={c.id} value={c.id}>{c.name} {c.email && `(${c.email})`}</option>
               ))}
             </select>
           </div>

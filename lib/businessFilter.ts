@@ -86,16 +86,31 @@ export function filterPaymentsByBusinessWithCustomers(
   if (isCurrentUserAdmin()) {
     return payments;
   }
-  
+
+  const currentUser = getCurrentUser();
+  const userBusinessId = currentUser?.businessId;
+
+  if (typeof userBusinessId === 'number') {
+    return payments.filter((payment) => payment.businessId === userBusinessId);
+  }
+
   const userBusiness = getUserBusinessFilter();
   if (!userBusiness) return [];
-  
-  // Obtener IDs de clientes del negocio del usuario
+
+  // Fallback para datos anteriores que no incluyen businessId en payment.
   const allowedCustomerIds = customers
     .filter((cust) => businessMatch(userBusiness, cust.business))
     .map((cust) => cust.id);
-  
-  return payments.filter((payment) => allowedCustomerIds.includes(payment.customerId));
+
+  return payments.filter((payment) => {
+    if (typeof payment.businessId === 'number') {
+      const customer = customers.find((cust) => cust.id === payment.customerId);
+      if (!customer) return false;
+      return businessMatch(userBusiness, customer.business);
+    }
+
+    return allowedCustomerIds.includes(payment.customerId);
+  });
 }
 
 /**
