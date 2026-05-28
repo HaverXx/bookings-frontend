@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { getAppointments, getCustomers, getBusinesses, getPayments, type Booking } from "@/lib/api";
 import type { Customer, Business, Payment } from "@/lib/types";
+import { filterAppointmentsByBusiness, filterCustomersByBusiness, filterPaymentsByBusinessWithCustomers } from "@/lib/businessFilter";
 import { ExportButton } from "./ExportButton";
 
 type DashboardBookingStatus = "pending" | "confirmed" | "paid";
@@ -76,10 +77,16 @@ export default function DashboardPage() {
           getBusinesses(),
           getPayments(),
         ]);
-        setAppointments(appData);
-        setCustomers(custData);
+        
+        // Apply business filters
+        const filteredAppts = filterAppointmentsByBusiness(appData);
+        const filteredCustomers = filterCustomersByBusiness(custData);
+        const filteredPayments = filterPaymentsByBusinessWithCustomers(payData, custData);
+        
+        setAppointments(filteredAppts);
+        setCustomers(filteredCustomers);
         setBusinesses(bizData);
-        setPayments(payData);
+        setPayments(filteredPayments);
       } catch (error) {
         console.error("Error cargando datos del panel", error);
       } finally {

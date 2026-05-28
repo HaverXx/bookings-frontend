@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Booking, BookingStatus, CreateBookingDto, UpdateBookingDto } from "@/lib/api";
 import { createAppointment, deleteAppointment, getBusinesses, getCustomers, updateAppointment } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
+import { filterAppointmentsByBusiness, filterCustomersByBusiness } from "@/lib/businessFilter";
 import type { Business, Customer } from "@/lib/types";
 
 type BookingFormState = {
@@ -385,7 +386,7 @@ function BookingCard({
 
 export default function BookingsClient({ initialBookings }: { initialBookings: Booking[] }) {
   const { t } = useLanguage();
-  const [bookings, setBookings] = useState<Booking[]>(initialBookings);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
@@ -395,10 +396,17 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
+    // Apply business filters to initial bookings
+    const filteredBookings = filterAppointmentsByBusiness(initialBookings);
+    setBookings(filteredBookings);
+  }, [initialBookings]);
+
+  useEffect(() => {
     async function loadCatalogs() {
       try {
         const [customerList, businessList] = await Promise.all([getCustomers(), getBusinesses()]);
-        setCustomers(customerList);
+        const filteredCustomers = filterCustomersByBusiness(customerList);
+        setCustomers(filteredCustomers);
         setBusinesses(businessList);
       } catch (error) {
         console.error("Error cargando catálogos para reservas", error);

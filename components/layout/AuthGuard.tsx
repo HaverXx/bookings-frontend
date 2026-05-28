@@ -17,7 +17,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (pathname === "/businesses" && !isAdminUser(parsedUser)) {
+    // Only admins can access businesses and users pages
+    if ((pathname === "/businesses" || pathname === "/users") && !isAdminUser(parsedUser)) {
       window.location.replace("/dashboard");
       return;
     }

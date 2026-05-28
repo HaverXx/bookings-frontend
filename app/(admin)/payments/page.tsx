@@ -5,6 +5,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { createPayment, deletePayment, getPayments, getCustomers } from "@/lib/api";
 import type { Customer } from "@/lib/types";
 import type { Payment, PaymentStatus } from "@/lib/types";
+import { filterCustomersByBusiness, filterPaymentsByBusinessWithCustomers } from "@/lib/businessFilter";
 
 // Componentes de apoyo
 function KpiCard({ title, value, subtitle, variant }: any) {
@@ -65,7 +66,8 @@ function RegisterPaymentModal({
     (async () => {
       try {
         const data = await getCustomers();
-        setCustomers(data);
+        const filtered = filterCustomersByBusiness(data);
+        setCustomers(filtered);
       } catch (e) {
         console.error('Failed to load customers', e);
       }
@@ -259,8 +261,9 @@ export default function PaymentsPage() {
 
   async function loadPayments() {
     try {
-      const data = await getPayments();
-      setPayments(data);
+      const [paymentData, customerData] = await Promise.all([getPayments(), getCustomers()]);
+      const filteredPayments = filterPaymentsByBusinessWithCustomers(paymentData, customerData);
+      setPayments(filteredPayments);
     } catch (error) {
       console.error("Error cargando cobros", error);
     }

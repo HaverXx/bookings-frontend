@@ -5,6 +5,7 @@ import { createCustomer, deleteCustomer, getCustomers, updateCustomer, getBusine
 import type { Customer, Business } from "@/lib/types";
 import type { CreateCustomerDto, UpdateCustomerDto } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
+import { filterCustomersByBusiness } from "@/lib/businessFilter";
 
 const EMPTY_FORM: CreateCustomerDto = {
   name: "",
@@ -388,7 +389,10 @@ export default function CustomersPage() {
 
   useEffect(() => {
     getCustomers()
-      .then(setCustomers)
+      .then((data) => {
+        const filtered = filterCustomersByBusiness(data);
+        setCustomers(filtered);
+      })
       .catch(() => setError(t("customers.error.load")))
       .finally(() => setLoading(false));
   }, [t]);

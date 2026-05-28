@@ -26,3 +26,12 @@ export function isAdminUser(user: CurrentUser | null): boolean {
 
   return role === "admin" || business === "admin" || email.includes("@admin");
 }
+
+export function getCurrentUser(): CurrentUser | null {
+  return parseCurrentUser(localStorage.getItem("currentUser"));
+}
+
+export function getUserBusiness(): string | null {
+  const user = getCurrentUser();
+  return user?.business ?? null;
+}
