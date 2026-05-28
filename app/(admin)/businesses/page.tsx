@@ -234,6 +234,12 @@ function BusinessCard({
           <p className="customer-name">#{business.businessID} · {business.name}</p>
         </div>
         <p className="customer-meta">ID: {business.businessID}</p>
+        {business.email && (
+          <p className="customer-meta" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+            <i className="bi bi-envelope" style={{ fontSize: 13 }}></i>
+            <span>Contacto: {business.email}</span>
+          </p>
+        )}
         <div className="customer-tag">{t("nav.businesses")}</div>
 
         <div style={{ display: "flex", gap: 8, marginTop: 14 }}>

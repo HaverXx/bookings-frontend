@@ -26,6 +26,7 @@ export type Customer = {
 export type Business = {
   businessID: number;
   name: string;
+  email?: string;
 };
 
 //payments
