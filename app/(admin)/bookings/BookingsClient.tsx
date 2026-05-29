@@ -394,6 +394,8 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
   const [showCreate, setShowCreate] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 12;
 
   useEffect(() => {
     // Apply business filters to initial bookings
@@ -425,15 +427,29 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
   const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
   const paidCount = bookings.filter((b) => b.status === "paid").length;
 
+  // Filtered bookings based on status and search
   const filtered = useMemo(() => {
     return bookings
       .filter((b) => statusFilter === "all" || b.status === statusFilter)
       .filter((b) =>
         [b.serviceName, String(b.customerId), String(b.businessId)]
-          .join(" ").toLowerCase().includes(search.toLowerCase())
+          .join(" ")
+          .toLowerCase()
+          .includes(search.toLowerCase())
       );
   }, [bookings, statusFilter, search]);
 
+  // Pagination calculations
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const paginatedBookings = useMemo(() => {
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(startIdx, startIdx + itemsPerPage);
+  }, [filtered, currentPage]);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
   return (
     <>
       {showCreate && (
@@ -524,7 +540,7 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
         )}
 
         <section className="customer-grid">
-          {filtered.map((booking) => (
+          {paginatedBookings.map((booking) => (
             <BookingCard
               key={booking.id}
               booking={booking}
@@ -535,6 +551,37 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
             />
           ))}
         </section>
+
+{totalPages > 1 && (
+        <section className="pagination">
+          <button
+            className="secondary-btn"
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            aria-label="Previous page"
+          >
+            {t("pagination.prev") ?? "Previous"}
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              className={currentPage === i + 1 ? "primary-btn active" : "secondary-btn"}
+              onClick={() => setCurrentPage(i + 1)}
+              aria-label={`Page ${i + 1}`}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            className="secondary-btn"
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            aria-label="Next page"
+          >
+            {t("pagination.next") ?? "Next"}
+          </button>
+        </section>
+      )}
       </div>
     </>
   );
