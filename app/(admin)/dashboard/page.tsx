@@ -232,7 +232,7 @@ export default function DashboardPage() {
       <div className="page-stack" style={{ display: "grid", placeItems: "center", minHeight: "60vh" }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
           <div className="spinner"></div>
-          <p style={{ color: "var(--muted)" }}>Cargando datos del panel...</p>
+          <p style={{ color: "var(--muted)" }}>{t("dashboard.loading")}</p>
         </div>
         <style dangerouslySetInnerHTML={{ __html: `
           .spinner {
