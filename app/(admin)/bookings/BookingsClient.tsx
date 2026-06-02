@@ -394,8 +394,7 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
   const [showCreate, setShowCreate] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 12;
+  const [visibleCount, setVisibleCount] = useState(12);
 
   useEffect(() => {
     // Apply business filters to initial bookings
@@ -440,15 +439,13 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
   }, [bookings, statusFilter, search]);
 
   // Pagination calculations
-  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const paginatedBookings = useMemo(() => {
-    const startIdx = (currentPage - 1) * itemsPerPage;
-    return filtered.slice(startIdx, startIdx + itemsPerPage);
-  }, [filtered, currentPage]);
+    return filtered.slice(0, visibleCount);
+  }, [filtered, visibleCount]);
 
-  // Reset page when filter changes
+  // Reset pagination limit when filter changes
   useEffect(() => {
-    setCurrentPage(1);
+    setVisibleCount(12);
   }, [search, statusFilter]);
   return (
     <>
@@ -552,36 +549,17 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
           ))}
         </section>
 
-{totalPages > 1 && (
-        <section className="pagination">
-          <button
-            className="secondary-btn"
-            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-            aria-label="Previous page"
-          >
-            {t("pagination.prev") ?? "Previous"}
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => (
+        {filtered.length > visibleCount && (
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 24 }}>
             <button
-              key={i + 1}
-              className={currentPage === i + 1 ? "primary-btn active" : "secondary-btn"}
-              onClick={() => setCurrentPage(i + 1)}
-              aria-label={`Page ${i + 1}`}
+              type="button"
+              className="secondary-btn"
+              onClick={() => setVisibleCount((prev) => prev + 12)}
             >
-              {i + 1}
+              {t("action.show_more")}
             </button>
-          ))}
-          <button
-            className="secondary-btn"
-            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            aria-label="Next page"
-          >
-            {t("pagination.next") ?? "Next"}
-          </button>
-        </section>
-      )}
+          </div>
+        )}
       </div>
     </>
   );

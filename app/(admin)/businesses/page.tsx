@@ -271,6 +271,7 @@ export default function BusinessesPage() {
   const [deletingBusiness, setDeletingBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   const loadBusinesses = async () => {
     try {
@@ -296,6 +297,11 @@ export default function BusinessesPage() {
     window.addEventListener("focus", handleWindowFocus);
     return () => window.removeEventListener("focus", handleWindowFocus);
   }, [t]);
+
+  // Reset visible items when search query changes
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [search]);
 
   const filtered = businesses.filter((b) =>
     b.name.toLowerCase().includes(search.toLowerCase())
@@ -347,16 +353,30 @@ export default function BusinessesPage() {
         )}
 
         {!loading && (
-          <section className="customer-grid">
-            {filtered.map((business) => (
-              <BusinessCard 
-                key={business.businessID} 
-                business={business} 
-                onDeleteRequest={setDeletingBusiness}
-                onUpdated={(updated) => setBusinesses((prev) => prev.map((b) => b.businessID === updated.businessID ? updated : b))}
-              />
-            ))}
-          </section>
+          <>
+            <section className="customer-grid">
+              {filtered.slice(0, visibleCount).map((business) => (
+                <BusinessCard 
+                  key={business.businessID} 
+                  business={business} 
+                  onDeleteRequest={setDeletingBusiness}
+                  onUpdated={(updated) => setBusinesses((prev) => prev.map((b) => b.businessID === updated.businessID ? updated : b))}
+                />
+              ))}
+            </section>
+
+            {filtered.length > visibleCount && (
+              <div style={{ display: "flex", justifyContent: "center", marginTop: 24 }}>
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  onClick={() => setVisibleCount((prev) => prev + 12)}
+                >
+                  {t("action.show_more")}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </>

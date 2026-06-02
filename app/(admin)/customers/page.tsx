@@ -388,6 +388,7 @@ export default function CustomersPage() {
   const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   useEffect(() => {
     getCustomers()
@@ -398,6 +399,11 @@ export default function CustomersPage() {
       .catch(() => setError(t("customers.error.load")))
       .finally(() => setLoading(false));
   }, [t]);
+
+  // Reset visible items when search query changes
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [search]);
 
   const filtered = customers.filter((c) =>
     [c.name, c.email, c.phone, c.business]
@@ -461,16 +467,30 @@ export default function CustomersPage() {
         )}
 
         {!loading && (
-          <section className="customer-grid">
-            {filtered.map((customer) => (
-              <CustomerCard
-                key={customer.id}
-                customer={customer}
-                onEdit={setEditingCustomer}
-                onDeleteRequest={setDeletingCustomer}
-              />
-            ))}
-          </section>
+          <>
+            <section className="customer-grid">
+              {filtered.slice(0, visibleCount).map((customer) => (
+                <CustomerCard
+                  key={customer.id}
+                  customer={customer}
+                  onEdit={setEditingCustomer}
+                  onDeleteRequest={setDeletingCustomer}
+                />
+              ))}
+            </section>
+
+            {filtered.length > visibleCount && (
+              <div style={{ display: "flex", justifyContent: "center", marginTop: 24 }}>
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  onClick={() => setVisibleCount((prev) => prev + 12)}
+                >
+                  {t("action.show_more")}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </>

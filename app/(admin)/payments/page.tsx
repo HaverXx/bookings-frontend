@@ -315,12 +315,14 @@ export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   async function loadPayments() {
     try {
       const [paymentData, customerData] = await Promise.all([getPayments(), getCustomers()]);
       const filteredPayments = filterPaymentsByBusinessWithCustomers(paymentData, customerData);
       setPayments(filteredPayments);
+      setVisibleCount(12);
     } catch (error) {
       console.error("Error cargando cobros", error);
     }
@@ -401,22 +403,38 @@ export default function PaymentsPage() {
           <p style={{ color: "var(--muted)", textAlign: "center" }}>{t("customers.empty")}</p>
         )}
 
-        <section className="customer-grid">
-          {payments.map((p) => (
-            <div key={p.id} className="customer-card">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                <p className="customer-name">#{p.id} · {p.customerName || `Cliente #${p.customerId}`}</p>
-                <Badge status={p.status} />
+        {payments.length > 0 && (
+          <>
+            <section className="customer-grid">
+              {payments.slice(0, visibleCount).map((p) => (
+                <div key={p.id} className="customer-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                    <p className="customer-name">#{p.id} · {p.customerName || `Cliente #${p.customerId}`}</p>
+                    <Badge status={p.status} />
+                  </div>
+                  <p className="customer-meta">{p.date}</p>
+                  <div className="customer-tag">{p.amount} {t("receipt.currency")} · {getPaymentMethodLabel(p.paymentMethod, t)}</div>
+                  <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                    <button className="secondary-btn btn-edit" style={{ flex: 1 }} onClick={() => handlePrint(p)}>{t("action.print")}</button>
+                    <button className="danger-btn" style={{ flex: 1 }} onClick={() => setDeletingId(p.id)}>{t("bookings.delete.action")}</button>
+                  </div>
+                </div>
+              ))}
+            </section>
+
+            {payments.length > visibleCount && (
+              <div style={{ display: "flex", justifyContent: "center", marginTop: 24 }}>
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  onClick={() => setVisibleCount((prev) => prev + 12)}
+                >
+                  {t("action.show_more")}
+                </button>
               </div>
-              <p className="customer-meta">{p.date}</p>
-              <div className="customer-tag">{p.amount} {t("receipt.currency")} · {getPaymentMethodLabel(p.paymentMethod, t)}</div>
-              <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-                <button className="secondary-btn btn-edit" style={{ flex: 1 }} onClick={() => handlePrint(p)}>{t("action.print")}</button>
-                <button className="danger-btn" style={{ flex: 1 }} onClick={() => setDeletingId(p.id)}>{t("bookings.delete.action")}</button>
-              </div>
-            </div>
-          ))}
-        </section>
+            )}
+          </>
+        )}
       </div>
     </>
   );

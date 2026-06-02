@@ -138,6 +138,7 @@ const translations = {
     "table.service": "Servicio",
 
     "action.print": "Imprimir",
+    "action.show_more": "Mostrar más",
     "status.paid": "Pagado",
     "status.pending": "Pendiente",
     "status.confirmed": "Confirmada",
@@ -361,6 +362,7 @@ const translations = {
     "table.service": "Service",
 
     "action.print": "Print",
+    "action.show_more": "Show more",
     "status.paid": "Paid",
     "status.pending": "Pending",
     "status.confirmed": "Confirmed",
