@@ -59,7 +59,7 @@ function KpiCard({
 }
 
 export default function DashboardPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [appointments, setAppointments] = useState<Booking[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -211,7 +211,15 @@ export default function DashboardPage() {
     },
     {
       title: t("dashboard.kpi.revenue"),
-      value: `${totalPaidAmount.toFixed(2)} €`,
+      value: `${(() => {
+        const formatted = new Intl.NumberFormat("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(totalPaidAmount);
+        return lang === "es"
+          ? formatted.replace(/\./g, "_").replace(/,/g, ".").replace(/_/g, ",")
+          : formatted;
+      })()} €`,
       subtitle: `${completedPaymentsCount} ${completedPaymentsCount === 1 ? t("dashboard.payment_recorded") : t("dashboard.payments_recorded")}`,
     },
     {
