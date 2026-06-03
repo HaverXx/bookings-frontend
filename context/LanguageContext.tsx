@@ -94,7 +94,7 @@ const translations = {
     "customers.view.text": "Información general del cliente registrado.",
 
     "bookings.title": "Listado de Reservas",
-    "bookings.subtitle": "Gestión de reservas conectada con la API.",
+    "bookings.subtitle": "Gestiona las reservas de tu negocio.",
     "bookings.search": "Buscar reserva...",
     "bookings.new": "Nueva reserva",
     "bookings.total": "Total reservas",
@@ -321,7 +321,7 @@ const translations = {
     "customers.view.text": "General information about the registered customer.",
 
     "bookings.title": "Bookings List",
-    "bookings.subtitle": "Booking management connected to the API.",
+    "bookings.subtitle": "Manage bookings for your business.",
     "bookings.search": "Search booking...",
     "bookings.new": "New booking",
     "bookings.total": "Total bookings",
