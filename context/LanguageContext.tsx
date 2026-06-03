@@ -95,6 +95,7 @@ const translations = {
 
     "bookings.title": "Listado de Reservas",
     "bookings.subtitle": "Gestión de reservas conectada con la API.",
+    "bookings.search": "Buscar reserva...",
     "bookings.new": "Nueva reserva",
     "bookings.total": "Total reservas",
     "bookings.total.meta": "Registros disponibles",
@@ -321,6 +322,7 @@ const translations = {
 
     "bookings.title": "Bookings List",
     "bookings.subtitle": "Booking management connected to the API.",
+    "bookings.search": "Search booking...",
     "bookings.new": "New booking",
     "bookings.total": "Total bookings",
     "bookings.total.meta": "Available records",

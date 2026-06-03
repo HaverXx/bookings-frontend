@@ -518,7 +518,7 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
           <div className="search-row">
             <input
               className="input"
-              placeholder={t("customers.search")}
+              placeholder={t("bookings.search")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
