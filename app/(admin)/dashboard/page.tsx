@@ -166,13 +166,13 @@ export default function DashboardPage() {
 
   // Real completed payments sum from the payments table
   const { totalPaidAmount, completedPaymentsCount } = useMemo(() => {
-    const completed = payments.filter((p) => p.status === "completed");
+    const completed = payments.filter((p) => p.status === "completed" && p.date === today);
     const sum = completed.reduce((acc, p) => acc + p.amount, 0);
     return {
       totalPaidAmount: sum,
       completedPaymentsCount: completed.length,
     };
-  }, [payments]);
+  }, [payments, today]);
 
   // Active Customers: count of registered customers in DB
   const activeCustomers = customers.length;
