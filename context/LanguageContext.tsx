@@ -146,6 +146,7 @@ const translations = {
     "status.paid_fem": "Pagada",
 
     "receipt.title": "RECIBO DE PAGO",
+    "receipt.bookingId": "ID Reserva",
     "receipt.thanks": "Gracias por su compra",
     "receipt.id": "ID Pago",
     "receipt.method": "Método",
@@ -371,6 +372,7 @@ const translations = {
     "status.paid_fem": "Paid",
 
     "receipt.title": "PAYMENT RECEIPT",
+    "receipt.bookingId": "Booking ID",
     "receipt.thanks": "Thank you for your purchase",
     "receipt.id": "Payment ID",
     "receipt.method": "Method",

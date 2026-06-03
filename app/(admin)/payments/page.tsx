@@ -347,6 +347,7 @@ export default function PaymentsPage() {
             <h2 style="text-align: center;">${t("receipt.title")}</h2>
             <hr>
             <p><strong>${t("receipt.id")}:</strong> ${payment.id}</p>
+            <p><strong>${t("receipt.bookingId")}:</strong> ${payment.appointmentId}</p>
             <p><strong>${t("table.customer")}:</strong> ${payment.customerName || `Cliente #${payment.customerId}`}</p>
             <p><strong>${t("table.amount")}:</strong> ${payment.amount} ${t("receipt.currency")}</p>
             <p><strong>${t("receipt.method")}:</strong> ${paymentMethodText}</p>
