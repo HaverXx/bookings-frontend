@@ -1,6 +1,8 @@
 // ExportButton.tsx
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
+
 type DashboardBookingStatus = "pending" | "confirmed" | "paid";
 
 type DashboardBooking = {
@@ -23,11 +25,13 @@ type ExportButtonProps = {
 };
 
 export function ExportButton({ bookings, kpis }: ExportButtonProps) {
+    const { t, lang } = useLanguage();
+
     function exportar() {
         const statusLabel = (status: DashboardBookingStatus) => {
-            if (status === "pending") return "Pendiente";
-            if (status === "confirmed") return "Confirmada";
-            return "Pagada";
+            if (status === "pending") return t("export.status.pending");
+            if (status === "confirmed") return t("export.status.confirmed");
+            return t("export.status.paid");
         };
 
         const printWindow = window.open("", "_blank", "width=800,height=600");
@@ -35,7 +39,7 @@ export function ExportButton({ bookings, kpis }: ExportButtonProps) {
 
         const html = `
       <!DOCTYPE html>
-      <html lang="es">
+      <html lang="${lang}">
       <head>
         <meta charset="UTF-8" />
         <title>Dashboard Report</title>
@@ -74,9 +78,9 @@ export function ExportButton({ bookings, kpis }: ExportButtonProps) {
         </style>
       </head>
       <body>
-        <h1>Dashboard Overview</h1>
-        <p class="subtitle">Control diario de reservas, actividad y pagos.</p>
-        <p class="date">Generado el ${new Date().toLocaleString("es-ES")}</p>
+        <h1>${t("export.title")}</h1>
+        <p class="subtitle">${t("export.subtitle")}</p>
+        <p class="date">${t("export.generated")} ${new Date().toLocaleString(lang === "es" ? "es-ES" : "en-US")}</p>
 
         <div class="kpi-grid">
           ${kpis
@@ -91,15 +95,15 @@ export function ExportButton({ bookings, kpis }: ExportButtonProps) {
                 .join("")}
         </div>
 
-        <h2>Próximas reservas</h2>
+        <h2>${t("export.bookings_title")}</h2>
         <table>
           <thead>
             <tr>
-              <th>Hora</th>
-              <th>Cliente</th>
-              <th>Comercio</th>
-              <th>Servicio</th>
-              <th>Estado</th>
+              <th>${t("export.time")}</th>
+              <th>${t("export.customer")}</th>
+              <th>${t("export.business")}</th>
+              <th>${t("export.service")}</th>
+              <th>${t("export.status")}</th>
             </tr>
           </thead>
           <tbody>
@@ -128,8 +132,8 @@ export function ExportButton({ bookings, kpis }: ExportButtonProps) {
     }
 
     return (
-        <button className="primary-btn" type="button" onClick={exportar}>
-            Export report
+        <button className="primary-btn btn-primary-action" type="button" onClick={exportar}>
+            {t("dashboard.exportReport")}
         </button>
     );
 }

@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import { getAppointments, type Booking } from "@/lib/api";
+import { getAppointments, getCustomers, getBusinesses, getPayments, type Booking } from "@/lib/api";
+import type { Customer, Business, Payment } from "@/lib/types";
+import { filterAppointmentsByBusiness, filterCustomersByBusiness, filterPaymentsByBusinessWithCustomers } from "@/lib/businessFilter";
 import { ExportButton } from "./ExportButton";
 
 type DashboardBookingStatus = "pending" | "confirmed" | "paid";
@@ -59,76 +61,164 @@ function KpiCard({
 export default function DashboardPage() {
   const { t } = useLanguage();
   const [appointments, setAppointments] = useState<Booking[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAllBookings, setShowAllBookings] = useState(false);
 
   useEffect(() => {
-    const loadAppointments = async () => {
+    const loadDashboardData = async () => {
       try {
-        const data = await getAppointments();
-        setAppointments(data);
+        setLoading(true);
+        const [appData, custData, bizData, payData] = await Promise.all([
+          getAppointments(),
+          getCustomers(),
+          getBusinesses(),
+          getPayments(),
+        ]);
+        
+        // Apply business filters
+        const filteredAppts = filterAppointmentsByBusiness(appData);
+        const filteredCustomers = filterCustomersByBusiness(custData);
+        const filteredPayments = filterPaymentsByBusinessWithCustomers(payData, custData);
+        
+        setAppointments(filteredAppts);
+        setCustomers(filteredCustomers);
+        setBusinesses(bizData);
+        setPayments(filteredPayments);
       } catch (error) {
-        console.error("Error cargando reservas", error);
+        console.error("Error cargando datos del panel", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    void loadAppointments();
+    void loadDashboardData();
   }, []);
 
-  const bookings = useMemo<DashboardBooking[]>(() => {
-    const today = new Date().toISOString().split("T")[0];
+  const customerMap = useMemo(() => new Map(customers.map((c) => [c.id, c.name])), [customers]);
+  const businessMap = useMemo(() => new Map(businesses.map((b) => [b.businessID, b.name])), [businesses]);
 
+  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
+
+  // Determine active date: use today if today has bookings, otherwise find the closest date with bookings
+  const activeDate = useMemo(() => {
+    if (appointments.length === 0) return today;
+    const hasToday = appointments.some((a) => a.date === today && !a.serviceName.includes("Cobro"));
+    if (hasToday) return today;
+
+    const validApps = appointments.filter((a) => !a.serviceName.includes("Cobro"));
+    if (validApps.length === 0) return today;
+
+    // Find the next upcoming booking from today
+    const upcoming = validApps.find((a) => a.date >= today);
+    if (upcoming) return upcoming.date;
+
+    // Fallback to the latest booking date in the past
+    return validApps[validApps.length - 1].date;
+  }, [appointments, today]);
+
+  const todayBookings = useMemo<DashboardBooking[]>(() => {
     return appointments
-      .filter((appointment) => appointment.date === today && !appointment.serviceName.includes("Cobro"))
+      .filter((appointment) => appointment.date === activeDate && !appointment.serviceName.includes("Cobro"))
       .sort((a, b) => a.time.localeCompare(b.time))
-      .map((appointment) => ({
-        time: appointment.time,
-        client: `Cliente #${appointment.customerId}`,
-        business: `Comercio #${appointment.businessId}`,
-        service: appointment.serviceName,
-        status: appointment.status,
-      }));
+      .map((appointment) => {
+        const clientName = customerMap.get(appointment.customerId) ?? `${t("dashboard.customer_label")} #${appointment.customerId}`;
+        const businessName = businessMap.get(appointment.businessId) ?? `${t("dashboard.business_label")} #${appointment.businessId}`;
+        return {
+          time: appointment.time,
+          client: clientName,
+          business: businessName,
+          service: appointment.serviceName,
+          status: appointment.status,
+        };
+      });
+  }, [appointments, customerMap, businessMap, activeDate, t]);
+
+  const allBookings = useMemo<DashboardBooking[]>(() => {
+    return appointments
+      .filter((appointment) => !appointment.serviceName.includes("Cobro"))
+      .sort((a, b) => {
+        const dateComparison = a.date.localeCompare(b.date);
+        if (dateComparison !== 0) return dateComparison;
+        return a.time.localeCompare(b.time);
+      })
+      .map((appointment) => {
+        const clientName = customerMap.get(appointment.customerId) ?? `${t("dashboard.customer_label")} #${appointment.customerId}`;
+        const businessName = businessMap.get(appointment.businessId) ?? `${t("dashboard.business_label")} #${appointment.businessId}`;
+        return {
+          time: `${appointment.date} · ${appointment.time}`,
+          client: clientName,
+          business: businessName,
+          service: appointment.serviceName,
+          status: appointment.status,
+        };
+      });
+  }, [appointments, customerMap, businessMap, t]);
+
+  const displayedBookings = showAllBookings ? allBookings : todayBookings;
+
+  // Real database metrics calculation
+  const totalPendingCount = useMemo(() => {
+    return appointments.filter((a) => a.status === "pending").length;
   }, [appointments]);
 
-  const today = new Date().toISOString().split("T")[0];
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+  // Real completed payments sum from the payments table
+  const { totalPaidAmount, completedPaymentsCount } = useMemo(() => {
+    const completed = payments.filter((p) => p.status === "completed");
+    const sum = completed.reduce((acc, p) => acc + p.amount, 0);
+    return {
+      totalPaidAmount: sum,
+      completedPaymentsCount: completed.length,
+    };
+  }, [payments]);
 
-  const todayAppointments = appointments.filter((a) => a.date === today);
-  const yesterdayAppointments = appointments.filter((a) => a.date === yesterday);
+  // Active Customers: count of registered customers in DB
+  const activeCustomers = customers.length;
 
-  const paidCount = todayAppointments.filter((a) => a.status === "paid").length;
-  const pendingCount = todayAppointments.filter((a) => a.status === "pending").length;
-  const activeCustomers = new Set(appointments.map((item) => item.customerId)).size;
+  // Group all appointments by businessId to find the featured business with most bookings
+  const featuredBusinessData = useMemo(() => {
+    if (appointments.length === 0 || businesses.length === 0) {
+      return { name: t("dashboard.no_bookings"), count: 0 };
+    }
 
-  function parseAmountFromService(serviceName: string): number {
-    const match = (serviceName || "").match(/(\d+(?:\.\d+)?)/);
-    if (!match) return 0;
-    const n = Number(match[0]);
-    return Number.isFinite(n) ? n : 0;
-  }
+    const counts: Record<number, number> = {};
+    appointments.forEach((a) => {
+      counts[a.businessId] = (counts[a.businessId] || 0) + 1;
+    });
 
-  const totalPaidAmount = todayAppointments
-    .filter((a) => a.status === "paid")
-    .reduce((sum, a) => sum + parseAmountFromService(a.serviceName), 0);
+    let maxId = -1;
+    let maxCount = -1;
+    for (const [idStr, count] of Object.entries(counts)) {
+      const id = Number(idStr);
+      if (count > maxCount) {
+        maxCount = count;
+        maxId = id;
+      }
+    }
+
+    const name = businessMap.get(maxId) ?? `${t("dashboard.business_label")} #${maxId}`;
+    return { name, count: maxCount };
+  }, [appointments, businessMap, businesses, t]);
 
   const kpis = [
     {
       title: t("dashboard.kpi.bookings"),
-      value: String(bookings.length),
-      subtitle: (() => {
-        const diff = bookings.length - yesterdayAppointments.length;
-        return `${diff >= 0 ? "+" : ""}${diff} respecto a ayer`;
-      })(),
+      value: String(todayBookings.length),
+      subtitle: `Fecha: ${activeDate}`,
       variant: "positive" as const,
     },
     {
       title: t("dashboard.kpi.revenue"),
-      value: `${totalPaidAmount} €`,
-      subtitle: `${paidCount} ${paidCount === 1 ? "pago registrado" : "pagos registrados"}`,
+      value: `${totalPaidAmount.toFixed(2)} €`,
+      subtitle: `${completedPaymentsCount} ${completedPaymentsCount === 1 ? t("dashboard.payment_recorded") : t("dashboard.payments_recorded")}`,
     },
     {
       title: t("dashboard.kpi.pending"),
-      value: String(pendingCount),
+      value: String(totalPendingCount),
       subtitle: t("dashboard.kpi.pending.meta"),
-      variant: pendingCount > 0 ? ("warning" as const) : undefined,
+      variant: totalPendingCount > 0 ? ("warning" as const) : undefined,
     },
     {
       title: t("dashboard.kpi.customers"),
@@ -136,6 +226,28 @@ export default function DashboardPage() {
       subtitle: t("dashboard.kpi.customers.meta"),
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="page-stack" style={{ display: "grid", placeItems: "center", minHeight: "60vh" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+          <div className="spinner"></div>
+          <p style={{ color: "var(--muted)" }}>{t("dashboard.loading")}</p>
+        </div>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #6C63FF;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+          }
+          @keyframes spin { to { transform: rotate(360deg); } }
+        `}} />
+      </div>
+    );
+  }
 
   return (
     <div className="page-stack">
@@ -146,7 +258,7 @@ export default function DashboardPage() {
         </div>
 
         <ExportButton
-          bookings={bookings}
+          bookings={todayBookings}
           kpis={kpis.map(({ title, value, subtitle }) => ({ title, value, subtitle }))}
         />
       </section>
@@ -179,9 +291,13 @@ export default function DashboardPage() {
       <section className="dashboard-grid">
         <div className="section-card">
           <div className="panel-title-row">
-            <h3 className="panel-title">{t("dashboard.next")}</h3>
-            <button className="panel-subtle-link" type="button">
-              {t("dashboard.viewAll")}
+            <h3 className="panel-title">{showAllBookings ? t("bookings.title") : t("dashboard.next")}</h3>
+            <button
+              className="panel-subtle-link"
+              type="button"
+              onClick={() => setShowAllBookings((current) => !current)}
+            >
+              {showAllBookings ? t("dashboard.viewUpcoming") : t("dashboard.viewAll")}
             </button>
           </div>
 
@@ -196,7 +312,7 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {bookings.map((booking, index) => (
+              {displayedBookings.map((booking, index) => (
                 <tr key={index}>
                   <td style={{ fontWeight: 600 }}>{booking.time}</td>
                   <td>{booking.client}</td>
@@ -207,10 +323,10 @@ export default function DashboardPage() {
                   </td>
                 </tr>
               ))}
-              {bookings.length === 0 ? (
+              {displayedBookings.length === 0 ? (
                 <tr>
                   <td colSpan={5} style={{ textAlign: "center", color: "#64748b" }}>
-                    No hay reservas para hoy
+                    {t("dashboard.no_bookings_today")}
                   </td>
                 </tr>
               ) : null}
@@ -222,22 +338,24 @@ export default function DashboardPage() {
           <div className="info-box">
             <p className="info-box__eyebrow">{t("dashboard.info.next")}</p>
             <p className="info-box__title">
-              {bookings[0]?.client ?? "Sin reservas"}
+              {todayBookings[0]?.client ?? t("dashboard.no_bookings")}
             </p>
             <p className="info-box__text">
-              {bookings[0] ? `${bookings[0].time} · ${bookings[0].business}` : "No hay reservas para hoy"}
+              {todayBookings[0] ? `${todayBookings[0].time} · ${todayBookings[0].business}` : t("dashboard.no_bookings_today")}
             </p>
           </div>
 
           <div className="info-box">
             <p className="info-box__eyebrow">{t("dashboard.info.featured")}</p>
-            <p className="info-box__title">{bookings.length}</p>
-            <p className="info-box__text">Reservas hoy</p>
+            <p className="info-box__title">{featuredBusinessData.name}</p>
+            <p className="info-box__text">
+              {featuredBusinessData.count} {featuredBusinessData.count === 1 ? "reserva registrada" : "reservas registradas"}
+            </p>
           </div>
 
           <div className="info-box">
             <p className="info-box__eyebrow">{t("dashboard.info.reminders")}</p>
-            <p className="info-box__title">{pendingCount} pendientes</p>
+            <p className="info-box__title">{totalPendingCount} pendientes</p>
             <p className="info-box__text">{t("dashboard.info.reminders.text")}</p>
           </div>
         </div>

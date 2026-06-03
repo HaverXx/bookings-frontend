@@ -26,7 +26,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="secondary-btn"
+      className="secondary-btn header-btn"
       style={{
         width: "40px",
         height: "40px",
@@ -38,7 +38,7 @@ export default function ThemeToggle() {
       }}
       aria-label="Toggle theme"
     >
-      {theme === "light" ? "🌙" : "☀️"}
+      {theme === "light" ? <i className="bi bi-brightness-high-fill"></i> : <i className="bi bi-moon-fill"></i>}
     </button>
   );
 }

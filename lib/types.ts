@@ -8,6 +8,8 @@ export type Appointment = {
   customerId: number;
   businessId: number;
   serviceName: string;
+  customerName?: string;
+  businessName?: string;
 };
 
 //customers
@@ -17,4 +19,28 @@ export type Customer = {
   phone: string;
   email: string;
   business: string;
+  businessId?: number;
+};
+
+//businesses
+export type Business = {
+  businessID: number;
+  name: string;
+  email?: string;
+};
+
+//payments
+export type PaymentStatus = "pending" | "completed" | "refunded" | "cancelled";
+
+export type Payment = {
+  id: number;
+  amount: number;
+  date: string;
+  paymentMethod: string;
+  appointmentId: number;
+  customerId: number;
+  businessId?: number;
+  status: PaymentStatus;
+  notes?: string;
+  customerName?: string;
 };
