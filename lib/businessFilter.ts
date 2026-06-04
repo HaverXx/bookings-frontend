@@ -11,6 +11,11 @@ export function getUserBusinessFilter(): string | null {
   return user.business ?? null;
 }
 
+function getUserBusinessId(): number | null {
+  const user = getCurrentUser();
+  return typeof user?.businessId === 'number' ? user.businessId : null;
+}
+
 /**
  * Verifica si el usuario es admin
  */
@@ -38,6 +43,11 @@ export function filterAppointmentsByBusiness(appointments: Booking[]): Booking[]
   if (isCurrentUserAdmin()) {
     return appointments;
   }
+
+  const userBusinessId = getUserBusinessId();
+  if (typeof userBusinessId === 'number') {
+    return appointments.filter((apt) => apt.businessId === userBusinessId);
+  }
   
   const userBusiness = getUserBusinessFilter();
   if (!userBusiness) return [];
@@ -52,6 +62,11 @@ export function filterCustomersByBusiness(customers: Customer[]): Customer[] {
   if (isCurrentUserAdmin()) {
     return customers;
   }
+
+  const userBusinessId = getUserBusinessId();
+  if (typeof userBusinessId === 'number') {
+    return customers.filter((cust) => cust.businessId === userBusinessId);
+  }
   
   const userBusiness = getUserBusinessFilter();
   if (!userBusiness) return [];
@@ -65,6 +80,11 @@ export function filterCustomersByBusiness(customers: Customer[]): Customer[] {
 export function filterPaymentsByBusiness(payments: Payment[]): Payment[] {
   if (isCurrentUserAdmin()) {
     return payments;
+  }
+
+  const userBusinessId = getUserBusinessId();
+  if (typeof userBusinessId === 'number') {
+    return payments.filter((payment) => payment.businessId === userBusinessId);
   }
   
   const userBusiness = getUserBusinessFilter();
@@ -119,6 +139,11 @@ export function filterPaymentsByBusinessWithCustomers(
 export function filterBusinessesForUser(businesses: Business[]): Business[] {
   if (isCurrentUserAdmin()) {
     return businesses;
+  }
+
+  const userBusinessId = getUserBusinessId();
+  if (typeof userBusinessId === 'number') {
+    return businesses.filter((biz) => biz.businessID === userBusinessId);
   }
   
   const userBusiness = getUserBusinessFilter();

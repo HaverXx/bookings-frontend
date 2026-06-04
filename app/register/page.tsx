@@ -16,6 +16,29 @@ const EMAIL_RESTRICTED_TOKEN = "@admin";
 const BUSINESS_RESTRICTED_TOKEN = "admin";
 const EMAIL_RESTRICTED_MESSAGE = "No se permite usar '@admin' en el correo electrónico.";
 const BUSINESS_RESTRICTED_MESSAGE = "No se permite usar 'admin' en el nombre del negocio.";
+const DUPLICATE_EMAIL_MESSAGE = "Ya existe un usuario con ese correo electrónico";
+
+function normalizeApiMessage(message: unknown): string {
+  if (Array.isArray(message)) {
+    return message.find((item) => typeof item === "string") || "";
+  }
+
+  return typeof message === "string" ? message : "";
+}
+
+function getRegisterErrorMessage(status: number, message: unknown): string {
+  const normalizedMessage = normalizeApiMessage(message);
+
+  if (normalizedMessage === DUPLICATE_EMAIL_MESSAGE) {
+    return normalizedMessage;
+  }
+
+  if (status === 409) {
+    return DUPLICATE_EMAIL_MESSAGE;
+  }
+
+  return normalizedMessage || "Error al crear la cuenta.";
+}
 
 function getRestrictedInputError(email: string, businessName: string): string {
   if (email.toLowerCase().includes(EMAIL_RESTRICTED_TOKEN)) {
@@ -133,7 +156,7 @@ export default function RegisterPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message || "Error al crear la cuenta.");
+        setError(getRegisterErrorMessage(res.status, data.message));
         return;
       }
 
