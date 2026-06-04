@@ -7,9 +7,9 @@ import Link from "next/link";
 const API = "http://localhost:3000";
 
 const PLANS = [
-  { id: "mensual", name: "Plan Mensual", monthlyEquivalent: "14,99€/mes", finalPrice: "14,99€", billingText: "Cobro mensual", popular: false },
-  { id: "trimestral", name: "Plan Trimestral", monthlyEquivalent: "12,99€/mes", finalPrice: "38,97€", billingText: "Cobro cada 3 meses", popular: false },
-  { id: "anual", name: "Plan Anual", monthlyEquivalent: "9,99€/mes", finalPrice: "119,88€", billingText: "Cobro cada 12 meses", popular: true }
+  { id: "demo", name: "Prueba gratuita", finalPrice: "0€", billingText: "Prueba tu primer mes de forma gratuita", popular: false },
+  { id: "mensual", name: "Plan Mensual", finalPrice: "14,99€", billingText: "Paga cada mes", popular: false },
+  { id: "anual", name: "Plan Anual", monthlyEquivalent: "9,99€/mes", finalPrice: "119,88€", billingText: "Paga cada 12 meses", popular: true }
 ];
 
 const EMAIL_RESTRICTED_TOKEN = "@admin";
