@@ -5,6 +5,7 @@ import { getAppointments, getCustomers, getBusinesses, getPayments, type Booking
 import type { Customer, Business, Payment } from "@/lib/types";
 import { filterAppointmentsByBusiness, filterCustomersByBusiness, filterPaymentsByBusinessWithCustomers } from "@/lib/businessFilter";
 import { ExportButton } from "./ExportButton";
+import { getCurrentUser, isAdminUser, type CurrentUser } from "@/lib/currentUser";
 
 type DashboardBookingStatus = "pending" | "confirmed" | "paid";
 
@@ -66,11 +67,13 @@ export default function DashboardPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAllBookings, setShowAllBookings] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
         setLoading(true);
+        setCurrentUser(getCurrentUser());
         const [appData, custData, bizData, payData] = await Promise.all([
           getAppointments(),
           getCustomers(),
@@ -99,6 +102,19 @@ export default function DashboardPage() {
 
   const customerMap = useMemo(() => new Map(customers.map((c) => [c.id, c.name])), [customers]);
   const businessMap = useMemo(() => new Map(businesses.map((b) => [b.businessID, b.name])), [businesses]);
+
+  const isBusinessUser = useMemo(() => {
+    return currentUser !== null && !isAdminUser(currentUser);
+  }, [currentUser]);
+
+  const businessName = useMemo(() => {
+    if (!currentUser) return "";
+    if (currentUser.business) return currentUser.business;
+    if (typeof currentUser.businessId === "number") {
+      return businessMap.get(currentUser.businessId) ?? "";
+    }
+    return "";
+  }, [currentUser, businessMap]);
 
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
 
@@ -261,13 +277,14 @@ export default function DashboardPage() {
     <div className="page-stack">
       <section className="page-hero">
         <div>
-          <h2>{t("dashboard.title")}</h2>
+          <h2>{t("dashboard.title")}{isBusinessUser && businessName ? ` - ${businessName}` : ""}</h2>
           <p>{t("dashboard.subtitle")}</p>
         </div>
 
         <ExportButton
           bookings={todayBookings}
           kpis={kpis.map(({ title, value, subtitle }) => ({ title, value, subtitle }))}
+          isBusinessUser={isBusinessUser}
         />
       </section>
 
@@ -314,7 +331,7 @@ export default function DashboardPage() {
               <tr>
                 <th>{t("table.time")}</th>
                 <th>{t("table.customer")}</th>
-                <th>{t("table.business")}</th>
+                {!isBusinessUser && <th>{t("table.business")}</th>}
                 <th>{t("table.service")}</th>
                 <th>{t("table.status")}</th>
               </tr>
@@ -324,7 +341,7 @@ export default function DashboardPage() {
                 <tr key={index}>
                   <td style={{ fontWeight: 600 }}>{booking.time}</td>
                   <td>{booking.client}</td>
-                  <td>{booking.business}</td>
+                  {!isBusinessUser && <td>{booking.business}</td>}
                   <td>{booking.service}</td>
                   <td>
                     <Badge status={booking.status} />
@@ -333,7 +350,7 @@ export default function DashboardPage() {
               ))}
               {displayedBookings.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: "center", color: "#64748b" }}>
+                  <td colSpan={isBusinessUser ? 4 : 5} style={{ textAlign: "center", color: "#64748b" }}>
                     {t("dashboard.no_bookings_today")}
                   </td>
                 </tr>

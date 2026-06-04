@@ -22,9 +22,10 @@ type KpiData = {
 type ExportButtonProps = {
     bookings: DashboardBooking[];
     kpis: KpiData[];
+    isBusinessUser?: boolean;
 };
 
-export function ExportButton({ bookings, kpis }: ExportButtonProps) {
+export function ExportButton({ bookings, kpis, isBusinessUser }: ExportButtonProps) {
     const { t, lang } = useLanguage();
 
     function exportar() {
@@ -101,7 +102,7 @@ export function ExportButton({ bookings, kpis }: ExportButtonProps) {
             <tr>
               <th>${t("export.time")}</th>
               <th>${t("export.customer")}</th>
-              <th>${t("export.business")}</th>
+              ${isBusinessUser ? "" : `<th>${t("export.business")}</th>`}
               <th>${t("export.service")}</th>
               <th>${t("export.status")}</th>
             </tr>
@@ -113,7 +114,7 @@ export function ExportButton({ bookings, kpis }: ExportButtonProps) {
               <tr>
                 <td><strong>${b.time}</strong></td>
                 <td>${b.client}</td>
-                <td>${b.business}</td>
+                ${isBusinessUser ? "" : `<td>${b.business}</td>`}
                 <td>${b.service}</td>
                 <td><span class="badge badge--${b.status}">${statusLabel(b.status)}</span></td>
               </tr>`
